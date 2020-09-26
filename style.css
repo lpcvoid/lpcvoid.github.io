@@ -51,6 +51,7 @@
 .bloglist {
     margin: 10px;
     padding: 10px;
+    overflow: hidden;
     background-color: #fff;
 }
 
@@ -64,10 +65,6 @@
 
 ul {
     margin: 10px;
-}
-
-li {
-    float : left;
 }
 
 
@@ -104,5 +101,5 @@ hr {
     border: none;
     height: 1px;
 
-    background-color: #BBB; /* Modern Browsers */
+    background-color: #BBB;
 }
