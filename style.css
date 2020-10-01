@@ -13,8 +13,10 @@
     margin: auto;
 }
 
-.m40 {
-    margin: 40px;
+.blogentryheader {
+    margin: 0px;
+    display: block;
+    height: 40px;
 }
 
 .box {
@@ -42,6 +44,7 @@
 
 .blogheaderimage {
     max-width: 240px;
+    max-height: 120px;
     display: block;
     margin-top: 60px;
     margin-left: auto;

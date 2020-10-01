@@ -139,11 +139,14 @@
         {% ifdef IS_POST %}
         <div class="content">
             {% block entry %}
-            <div >
+            <div class="blogentryheader">
               <h3 class="float-left">{{ TITLE }}</h3>
               <h4 class="float-right">Published on: {{ DATE_FORMATTED }}</h4>
             </div>
-            {{ CONTENT }}
+            <div>
+                {{ CONTENT }}
+                
+            </div>
             {% endblock %}
         </div>
         {% endif %}

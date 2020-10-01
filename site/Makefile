@@ -15,6 +15,7 @@ BLOGC ?= $(shell which blogc)
 OUTPUT_DIR ?= ../
 BASE_URL ?= https://lpcvoid.com
 
+
 DATE_FORMAT = "%Y-%m-%d"
 DATE_FORMAT_ATOM = "%Y-%m-%d"
 

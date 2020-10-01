@@ -5,7 +5,7 @@ DATE: 2020-09-29
 <img src="https://grapheneos.org/logo.png" alt="GrapheneOS logo" class="blogheaderimage" />
 <!-- I should probably rehost this image myself. -->
 
-I am not a fan of buying new phones every year. I have been using a HTC 10 since around 2016, and it has served me well so far thanks to custom firmwares that prolonged its life. The main problem with old phones is security related though, as most manufacturers simply stop patching their firmware at some point (HTC released the last firmware update for this phone in 2018 [version 2.41.401.41]). 
+I am not a fan of buying new phones every year. I have been using a HTC 10 since around 2016, and it has served me well so far thanks to custom roms that prolonged its life. The main problem with old phones is security related though, as most manufacturers simply stop patching their firmware at some point (HTC released the last firmware update for this phone in 2018 [version 2.41.401.41]). 
 
 I always kind of ignored the issue, since I convinced myself that my threat model does not involve state actors or drive by exploitation, but rather tracking and fingerprinting. I ran the phone on LineageOS and MicroG in order to get the Google spyware off it - but that has its own problems, namely:
 
