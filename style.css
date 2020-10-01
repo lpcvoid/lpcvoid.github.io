@@ -36,6 +36,10 @@
     font-size: medium;
 }
 
+.generationmsg {
+    text-align: center;
+}
+
 .blogheaderimage {
     max-width: 240px;
     display: block;
