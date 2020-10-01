@@ -8,7 +8,7 @@ I wanted one that was minimal, preferrably written in C, and which supports nice
 
 The initial port was trivial, as blogc is built pretty straight forward. You define a template, and then call blogc to compile html from this template. It can use plain text files in order to insert content into posts, which allows me to concentrate on the content when writing, instead of thinking about the way it looks later. The plaintext that was used to generate this post, for example, is located [here](https://lpcvoid.com/site/blogposts/0003_blogc.txt).
 
-Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are __FILTER_PER_PAGE__ and __FILTER_PAGE__. There is even documentation about these parameters, but I missed those for some reason, shame on me.
+Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are __FILTER\_PER]_PAGE__ and __FILTER\_PAGE__. There is even documentation about these parameters, but I missed those for some reason, shame on me.
 
 Anyhow, quite happy with this setup so far. Might need a few css tweaks, but time will tell. I can't recommend blogc enough.
 

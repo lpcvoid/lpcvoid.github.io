@@ -50,7 +50,7 @@
                 <p>I designed this site quite a long time ago, and never really used it too much. Then, a few days ago, I decided to start this blog to see if I would enjoy this type of writing. As it turns out, so far I do. It also helps me practice touch typing, which I have recently started learning. Anyhow - since I plan to write at least a post a week, this blog needed to be built on a more solid approach other than copying template html files. I needed a site generator.</p>
 <p>I wanted one that was minimal, preferrably written in C, and which supports nice markup features along with not sticking Javascript everywhere. While I am sure that there are many such tools out there, my choice fell on blogc because of its incredibly well written documentation, along with its fast execution speed. </p>
 <p>The initial port was trivial, as blogc is built pretty straight forward. You define a template, and then call blogc to compile html from this template. It can use plain text files in order to insert content into posts, which allows me to concentrate on the content when writing, instead of thinking about the way it looks later. The plaintext that was used to generate this post, for example, is located <a href="https://lpcvoid.com/site/blogposts/0003_blogc.txt">here</a>.</p>
-<p>Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are <strong>FILTER<em>PER</em>PAGE</strong> and <strong>FILTER_PAGE</strong>. There is even documentation about these parameters, but I missed those for some reason, shame on me.</p>
+<p>Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are <strong>FILTER_PER]_PAGE</strong> and <strong>FILTER_PAGE</strong>. There is even documentation about these parameters, but I missed those for some reason, shame on me.</p>
 <p>Anyhow, quite happy with this setup so far. Might need a few css tweaks, but time will tell. I can&#x27;t recommend blogc enough.</p>
 
                 
@@ -59,7 +59,7 @@
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-01 14:43:56.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-01 14:46:12.</div>
     </div>
 
 </body>
