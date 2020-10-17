@@ -1,0 +1,92 @@
+TITLE: A quick rundown of the BEST2 instruction set.
+DATE: 2020-10-17
+-------------------------
+
+Ever since I published [my first BEST2 VM](https://github.com/lpcvoid/bmw-best2-vm), I have gotten questions about the instruction set now and then. Recently I published my vastly improved and fairly complete [second version](https://github.com/lpcvoid/bmw-better-vm), which is fairly stable and written in C++. This post aims to explain what I know about the instruction set, some people perfer this format over reading code.
+
+The BEST2 instruction set was initially designed (as far as I can tell) by [Softing](softing.com). It is used by a virtual machine that is part of a runtime environment which can execute automotive diagnostic jobs. These jobs are written by engineers in a C like syntax and compiled to bytecode. The API is fairly rich, and includes functions for communication, large amounts of helper functions for boolean and integer logic, rich output formatting and data manipulation functions, shared memory and a small embedded database that operates on tables. The API functions are partly written directly in BEST2 assembler and linked by the compiler at compiletime.
+
+The VM itself is a stack and register machine. Arguments to functions are passed by registers. There are 8 long (32 bit) registers, 16 string registers and 8 float registers. The long registers are (simularly to x86) stacked in a way that allows easy access to individual bytes/words.
+
+    struct bmwBESTVMStackedRegister {
+        union {
+            uint32 rl;
+            struct {
+                uint16 rw0;
+                uint16 rw1;
+            };
+            struct {
+                uint8 rb0;
+                uint8 rb1;
+                uint8 rb2;
+                uint8 rb3;
+            };
+        };
+    };
+
+The string registers are limited to 1024 bytes and initially empty. Operations can and will operate on whatever indices they please though, and the register is expected to grow to the index that was referenced. For example, consider following code:
+
+    clear S1
+    move S1[2], S2[RL1:RL3]
+
+In the first line, we clear S1, which sets all bytes to 0. The length after this instruction is also 0x00. In the second line, we copy some bytes from S2 to S1 begining at offset 2. This means that the first 2 bytes of S1 are now 0x00, and the bytes afterwards are filled by the contents of S2 beginning from the value of RL1 (register long 1) and counting RL3 bytes. This was a bit of a pitfall, since I kind of expected some sort of initialization, but nope.
+
+The VM has multiple flags, but nothing special - sign, carry, overflow and zero are pretty much what you would expect. There is a special one that acts as a trap register for catching or allowing errors, which some jobs use to great extent and which is a bit annoying. 
+
+Instructions are of a static lengh and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.
+
+***
+
+There are 15 operand addressing modes. The first four describe registers (regS, regAB, regI, regL). The next four address immediate values (imm8, imm16, imm32, immStr). The fun starts afterwards, where we get into the register indexing stuff. The indexing addressing scheme only operates on string registers, so if you ever find a long register referenced here, you have a decoding error. I'll address these operand schemes briefly.
+
+**IdxImm:** 
+
+Immediate indexing. Used a lot when parsing sendx responses, which come from the car.
+
+Example: move RS1, RS2[2]
+
+**IdxReg:** 
+
+Indexing using the contents of another register.
+
+Example: move RS1, RS2[RAB2]
+
+**IdxRegImm:**
+
+This one had me stumped for a bit, since I could not quite imagine why they would implement this. I would guess that it's an optimization for smaller code. Imagine you have a result of some operation in a long register RL2. You wish to use that to index a string register and copy data to RS2, but need to add a constant 3 to it (which is a common operation for processing diagnostic payloads). You would need to execute something like this:
+
+    move RL3, RL2
+    add RL3, 3
+    move RS2, RS1[RL3]
+
+With IdxRegImm, you can do this:
+
+    move RS2, RS1[RL2+3]
+
+This saves a few bytes and speeds things up.
+
+**IdxImmLenImm:**
+
+Indexing using two constants. The first one is the offset, and the second one is the lenght. This is comparable to a memcpy.
+
+Example: move RS1, RS2[3:4]
+
+This would copy 4 bytes to RS1, beginning at index 3 of RS2.
+
+**IdxImmLenReg, IdxRegLenImm, IdxRegLenReg**
+
+Same as IdxImmLenImm, but different sources of index.
+
+***
+
+After decoding the instructions and operands, the instruction is executed. This is the annoying part, as there are many opcodes that need to be implemented. See my VM for most of them, but I ommited a few because I never encountered them in the wild while dealing with Fxx and Exx vehicles.
+
+The shared memory is accessed by shmset and shmget. Both opcodes expect some access key, which enables multiple shared memories at the same time. I have never seen this used though, and instead an empty string is passed. Other than that, shared memory behaves like a string register.
+
+Tables are a central part of the VM, since a lot of data is stored there. This can include simple strings describing portions of a diagnostic payload, up to complex tables detailing how response values are to be manipulated to get a human readable response.
+
+The jobs itself are located in .prg files, which are obfusicated in a very lazy fashion (why even bother). The file format is not very complicated, see my VM for a parser.
+
+***
+
+I will add more to this overview with time, or whenever somebody asks.
