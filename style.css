@@ -32,6 +32,11 @@
     margin: 20px;
     border: 3px solid black;
 }
+
+.content pre {
+    margin: 20px;
+}
+
 .logo{
     margin: 30px;
     text-align: center;
