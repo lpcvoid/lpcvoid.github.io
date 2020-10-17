@@ -33,7 +33,7 @@ In the first line, we clear S1, which sets all bytes to 0. The length after this
 
 The VM has multiple flags, but nothing special - sign, carry, overflow and zero are pretty much what you would expect. There is a special one that acts as a trap register for catching or allowing errors, which some jobs use to great extent and which is a bit annoying. 
 
-Instructions are of a static lengh and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.
+Instructions are of a static length and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.
 
 ***
 
@@ -41,7 +41,7 @@ There are 15 operand addressing modes. The first four describe registers (regS, 
 
 **IdxImm:** 
 
-Immediate indexing. Used a lot when parsing sendx responses, which come from the car.
+Immediate indexing. Used a lot when parsing xsend responses, which come from the car.
 
 Example: move RS1, RS2[2]
 
