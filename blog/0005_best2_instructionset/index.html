@@ -70,11 +70,11 @@
 move S1[2], S2[RL1:RL3]</code></pre>
 <p>In the first line, we clear S1, which sets all bytes to 0. The length after this instruction is also 0x00. In the second line, we copy some bytes from S2 to S1 begining at offset 2. This means that the first 2 bytes of S1 are now 0x00, and the bytes afterwards are filled by the contents of S2 beginning from the value of RL1 (register long 1) and counting RL3 bytes. This was a bit of a pitfall, since I kind of expected some sort of initialization, but nope.</p>
 <p>The VM has multiple flags, but nothing special - sign, carry, overflow and zero are pretty much what you would expect. There is a special one that acts as a trap register for catching or allowing errors, which some jobs use to great extent and which is a bit annoying. </p>
-<p>Instructions are of a static lengh and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.</p>
+<p>Instructions are of a static length and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.</p>
 <hr />
 <p>There are 15 operand addressing modes. The first four describe registers (regS, regAB, regI, regL). The next four address immediate values (imm8, imm16, imm32, immStr). The fun starts afterwards, where we get into the register indexing stuff. The indexing addressing scheme only operates on string registers, so if you ever find a long register referenced here, you have a decoding error. I&#x27;ll address these operand schemes briefly.</p>
 <p><strong>IdxImm:</strong> </p>
-<p>Immediate indexing. Used a lot when parsing sendx responses, which come from the car.</p>
+<p>Immediate indexing. Used a lot when parsing xsend responses, which come from the car.</p>
 <p>Example: move RS1, RS2[2]</p>
 <p><strong>IdxReg:</strong> </p>
 <p>Indexing using the contents of another register.</p>
@@ -107,7 +107,7 @@ move RS2, RS1[RL3]</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-17 09:39:53.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-17 09:53:39.</div>
     </div>
 
 </body>
