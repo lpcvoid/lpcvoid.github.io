@@ -1,0 +1,66 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - On the topic of browser extension security.</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right "><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">On the topic of browser extension security.</h3>
+              <h4 class="float-right">Published on: 2020-10-17</h4>
+            </div>
+            <div>
+                <p>While reading on &#x2F;r&#x2F;firefox today, I stumbled upon <a href="https://old.reddit.com/r/firefox/comments/jbua53/nanoadblocker_nanodefender_is_malware_now/">a discussion</a> about how a browser extension was sold by a developer to a third party. This apparently stems from the original author not having the time for maintaining it anymore (why not just say so and step back then?). I do not want to discuss the handling of this issue here, what I am more interested in is the implication. The extension has north of 100k users, most of which would probably describe themselves as privacy aware. This is probably a valuable target demographic for malicious actors, and so far it&#x27;s looking like the new owners don&#x27;t have the users best interest in mind.<br /></p>
+<p>This is too easy. I mean, this time the internet noticed and there was a huge outcry. The problem here centers around distribution and gatekeeping. One of the main arguments Google and other proponents of walled gardens keep bringing up in favor of their stores is security. It&#x27;s supposed to be harder to distribute malicious code over these stores due to a plethora of automatic analysis that they do. Except this time, it apparently didn&#x27;t work and code got pushed successfully. If this doesn&#x27;t work reliably, I&#x27;d much rather install my extensions without going over Google (or Mozilla). If the gatekeepers fail, why even bother. Uploading an extension to the Chrome webstore just requires a zip file with the extension code and assets bundled. As far as I know, there isn&#x27;t even a method to link a repo or commit hash to the submission for verification. So what is it worth to host your extension on github?</p>
+<p>Give me an open build service (which I could host myself) which builds extensions, lets me download them in packaged form and then install them manually. Updates can then be optionally enabled by giving the browser a way to automatically check the build service for new releases, and then asking the user for permission to update.</p>
+<p>In the future, I&#x27;d also like stringent requirements for large extensions. For one, developers should be required to use some sort of U2F scheme to verify that they indeed did author commits. Just a login isn&#x27;t sufficient here due to how easy it is to transfer.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-17 07:20:45.</div>
+    </div>
+
+</body>
+
+</html>

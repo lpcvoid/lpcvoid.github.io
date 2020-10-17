@@ -1,0 +1,11 @@
+TITLE: On the topic of browser extension security.
+DATE: 2020-10-17
+-------------------------
+
+While reading on /r/firefox today, I stumbled upon [a discussion](https://old.reddit.com/r/firefox/comments/jbua53/nanoadblocker_nanodefender_is_malware_now/) about how a browser extension was sold by a developer to a third party. This apparently stems from the original author not having the time for maintaining it anymore (why not just say so and step back then?). I do not want to discuss the handling of this issue here, what I am more interested in is the implication. The extension has north of 100k users, most of which would probably describe themselves as privacy aware. This is probably a valuable target demographic for malicious actors, and so far it's looking like the new owners don't have the users best interest in mind.  
+
+This is too easy. I mean, this time the internet noticed and there was a huge outcry. The problem here centers around distribution and gatekeeping. One of the main arguments Google and other proponents of walled gardens keep bringing up in favor of their stores is security. It's supposed to be harder to distribute malicious code over these stores due to a plethora of automatic analysis that they do. Except this time, it apparently didn't work and code got pushed successfully. If this doesn't work reliably, I'd much rather install my extensions without going over Google (or Mozilla). If the gatekeepers fail, why even bother. Uploading an extension to the Chrome webstore just requires a zip file with the extension code and assets bundled. As far as I know, there isn't even a method to link a repo or commit hash to the submission for verification. So what is it worth to host your extension on github?
+
+Give me an open build service (which I could host myself) which builds extensions, lets me download them in packaged form and then install them manually. Updates can then be optionally enabled by giving the browser a way to automatically check the build service for new releases, and then asking the user for permission to update.
+
+In the future, I'd also like stringent requirements for large extensions. For one, developers should be required to use some sort of U2F scheme to verify that they indeed did author commits. Just a login isn't sufficient here due to how easy it is to transfer.
