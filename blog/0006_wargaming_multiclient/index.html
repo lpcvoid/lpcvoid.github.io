@@ -66,9 +66,9 @@
 .text:251C43F8    nop
 .text:251C43F9    nop
 .text:251C43FA    nop
-.text:251C43FB    test    eax,eax
+.text:251C43FB    test    eax, eax
 .text:251C43FD    js      wgc_api.251C4433   </code></pre>
-<p>Since js tests the sign flag, we want <code>test eax,eax</code> to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. The nops below are just padding and do nothing. That&#x27;s it, we are done.</p>
+<p>Since js tests the sign flag, we want <code>test eax,eax</code> to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. This consumes two bytes, so the three <code>nop</code>s below are just padding and do nothing. That&#x27;s it, we are done.</p>
 <p>Here is a patch file for x64dbg, in case anybody wants it. The wgc_api.dll it works on has a sha256 sum of c9d48273984bc369a19b44b01b671c629acb6ec2886e52231f1854402d559258.</p>
 <pre><code>&gt;wgc_api.dll
 000043F6:E8-&gt;33
@@ -83,7 +83,7 @@
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-25 21:16:27.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-25 21:19:42.</div>
     </div>
 
 </body>

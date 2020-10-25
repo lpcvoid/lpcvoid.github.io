@@ -28,10 +28,10 @@ sr\_test\_mutex (my naming skills are sick) returns a non zero value if the mute
     .text:251C43F8    nop
     .text:251C43F9    nop
     .text:251C43FA    nop
-    .text:251C43FB    test    eax,eax
+    .text:251C43FB    test    eax, eax
     .text:251C43FD    js      wgc_api.251C4433   
 
-Since js tests the sign flag, we want ``test eax,eax`` to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. The nops below are just padding and do nothing. That's it, we are done.
+Since js tests the sign flag, we want ``test eax,eax`` to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. This consumes two bytes, so the three ``nop``s below are just padding and do nothing. That's it, we are done.
 
 Here is a patch file for x64dbg, in case anybody wants it. The wgc_api.dll it works on has a sha256 sum of c9d48273984bc369a19b44b01b671c629acb6ec2886e52231f1854402d559258.
 
