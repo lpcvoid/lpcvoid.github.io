@@ -1,0 +1,43 @@
+TITLE: Patching the Wargaming launcher to allow multiple clients
+DATE: 2020-10-25
+-------------------------
+
+This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For everybody else, I hope you find it interesting.
+
+I have been playing a video game called World of Tanks for quite some time now with my father. For a few weeks now, we have been going back and forth between World of Tanks, and Wargamings newer installment, World of Warships. Unfortunately, you cannot by default launch both game clients at the same time. It's time we fix this.
+
+When you want to implement a restriction like that, there are pretty many options:
+
+* You can create some file on start that gets deleted when your tools exits. Crusty, comes with many problems.
+* You can search for the window title of your tool, or the name of your ELF/PE file. Better, but what if a user uses a program with the same name?
+* You could use a mutex or an atom, or whatever global named object your OS offers for testing if something exists.
+
+The last point has many advantages. First, your mutex actually gets closed by the system once your application terminates (or crashes). This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: [CreateMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw) and [OpenMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw). Or the *A variants if you're inclined.
+
+The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?
+
+Well, that's what the Wargaming launcher does. The API to this launcher lives in wgc_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named *wgc_running_games_mtx*. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:
+
+    .text:251C43F6    call    sr_test_mutex //<--- this is the test call
+    .text:251C43FB    test    eax, eax
+    .text:251C43FD    js      wgc_api.251C4433
+
+sr_test_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the ``test eax, eax``. Fortunately, windows is a fan of __cdecl, which means the caller cleans up the stack and we can most of the time get away with nuking parametrized calls. So that's what we do.
+
+    .text:251C43F6    xor     eax,eax
+    .text:251C43F8    nop
+    .text:251C43F9    nop
+    .text:251C43FA    nop
+    .text:251C43FB    test    eax,eax
+    .text:251C43FD    js      wgc_api.251C4433   
+
+Since js tests the sign flag, we want ``test eax,eax`` to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. The nops below are just padding and do nothing. That's it, we are done.
+
+Here is a patch file for x64dbg, in case anybody wants it. The wgc_api.dll it works on has a sha256 sum of c9d48273984bc369a19b44b01b671c629acb6ec2886e52231f1854402d559258.
+
+    >wgc_api.dll
+    000043F6:E8->33
+    000043F7:65->C0
+    000043F8:00->90
+    000043F9:00->90
+    000043FA:00->90
