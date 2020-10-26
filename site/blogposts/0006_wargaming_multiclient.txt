@@ -10,9 +10,9 @@ When you want to implement a restriction like that, there are pretty many option
 
 * You can create some file on start that gets deleted when your tools exits. Crusty, comes with many problems.
 * You can search for the window title of your tool, or the name of your ELF/PE file. Better, but what if a user uses a program with the same name?
-* You could use a mutex or an atom, or whatever global named object your OS offers for testing if something exists.
+* You could use a mutex or an atom, or whatever global named object your OS offers that we can abuse for testing if something already exists.
 
-The last point has many advantages. First, your mutex actually gets closed by the system once your application terminates (or crashes). This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: [CreateMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw) and [OpenMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw). Or the *A variants if you're inclined.
+The last point has many advantages for the mutex. First, a mutex actually gets closed by the system once your application terminates (or crashes), while an atom does not. This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: [CreateMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw) and [OpenMutexW](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw). Or the *A variants if you're inclined.
 
 The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?
 
@@ -43,7 +43,7 @@ Well, that's what the Wargaming launcher does. The API to this launcher lives in
     .text:251C4409    lea     eax, [esi+28h]
     .text:251C440C    jb      short loc_251C4410
 
-sr\_test\_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the ``test eax, eax``. Fortunately, windows is a fan of __cdecl, which means the caller cleans up the stack and we can most of the time get away with nuking parametrized calls. So that's what we do.
+sr\_test\_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the ``test eax, eax``. Fortunately, windows is a fan of [__cdecl](https://docs.microsoft.com/en-us/cpp/cpp/cdecl?view=vs-2019), which means the caller cleans up the stack and we can get away with nuking parametrized calls. So that's what we do.
 
     .text:251C43F6    xor     eax,eax
     .text:251C43F8    nop

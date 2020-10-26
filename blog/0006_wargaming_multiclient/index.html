@@ -53,9 +53,9 @@
 <ul>
 <li>You can create some file on start that gets deleted when your tools exits. Crusty, comes with many problems.</li>
 <li>You can search for the window title of your tool, or the name of your ELF&#x2F;PE file. Better, but what if a user uses a program with the same name?</li>
-<li>You could use a mutex or an atom, or whatever global named object your OS offers for testing if something exists.</li>
+<li>You could use a mutex or an atom, or whatever global named object your OS offers that we can abuse for testing if something already exists.</li>
 </ul>
-<p>The last point has many advantages. First, your mutex actually gets closed by the system once your application terminates (or crashes). This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw">CreateMutexW</a> and <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw">OpenMutexW</a>. Or the *A variants if you&#x27;re inclined.</p>
+<p>The last point has many advantages for the mutex. First, a mutex actually gets closed by the system once your application terminates (or crashes), while an atom does not. This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw">CreateMutexW</a> and <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw">OpenMutexW</a>. Or the *A variants if you&#x27;re inclined.</p>
 <p>The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?</p>
 <p>Well, that&#x27;s what the Wargaming launcher does. The API to this launcher lives in wgc_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named <em>wgc_running_games_mtx</em>. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:</p>
 <pre><code>.text:251C43C0    push    edi
@@ -82,7 +82,7 @@
 .text:251C4405    cmp     dword ptr [esi+3Ch], 8
 .text:251C4409    lea     eax, [esi+28h]
 .text:251C440C    jb      short loc_251C4410</code></pre>
-<p>sr_test_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the <code>test eax, eax</code>. Fortunately, windows is a fan of __cdecl, which means the caller cleans up the stack and we can most of the time get away with nuking parametrized calls. So that&#x27;s what we do.</p>
+<p>sr_test_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the <code>test eax, eax</code>. Fortunately, windows is a fan of <a href="https://docs.microsoft.com/en-us/cpp/cpp/cdecl?view=vs-2019">__cdecl</a>, which means the caller cleans up the stack and we can get away with nuking parametrized calls. So that&#x27;s what we do.</p>
 <pre><code>.text:251C43F6    xor     eax,eax
 .text:251C43F8    nop
 .text:251C43F9    nop
@@ -104,7 +104,7 @@
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-26 07:12:32.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-26 07:21:42.</div>
     </div>
 
 </body>
