@@ -2,7 +2,7 @@ TITLE: Patching the Wargaming launcher to allow multiple clients
 DATE: 2020-10-25
 -------------------------
 
-This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For everybody else, I hope you find it interesting.
+This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For anybody who wishes to read about an easy patch, I hope you enjoy.
 
 I have been playing a video game called World of Tanks for quite some time now with my father. For a few weeks now, we have been going back and forth between World of Tanks, and Wargamings newer installment, World of Warships. Unfortunately, you cannot by default launch both game clients at the same time. It's time we fix this.
 
@@ -16,11 +16,32 @@ The last point has many advantages. First, your mutex actually gets closed by th
 
 The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?
 
-Well, that's what the Wargaming launcher does. The API to this launcher lives in wgc\_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named *wgc_running_games_mtx*. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:
+Well, that's what the Wargaming launcher does. The API to this launcher lives in wgc\_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named *wgc\_running\_games\_mtx*. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:
 
-    .text:251C43F6    call    sr_test_mutex //<--- this is the test call
+    .text:251C43C0    push    edi
+    .text:251C43C1    push    eax
+    .text:251C43C2    lea     eax, [ebp+var_C]
+    .text:251C43C5    mov     large fs:0, eax
+    .text:251C43CB    mov     [ebp+var_10], esp
+    .text:251C43CE    mov     esi, ecx
+    .text:251C43D0    cmp     dword ptr [esi+40h], 0
+    .text:251C43D4    lea     eax, [ebp+var_15]
+    .text:251C43D7    mov     [ebp+var_4], 0
+    .text:251C43DE    lea     ecx, [ebp+var_24]
+    .text:251C43E1    mov     [ebp+var_24], eax
+    .text:251C43E4    setnz   [ebp+var_15]
+    .text:251C43E8    lea     eax, [ebp+arg_0]
+    .text:251C43EB    mov     [ebp+var_1C], esi
+    .text:251C43EE    push    offset wgc_api.252C5E7C
+    .text:251C43F3    mov     [ebp+var_20], eax
+    .text:251C43F6    call    sr_test_mutex   ; nop this and set eax to 0
     .text:251C43FB    test    eax, eax
-    .text:251C43FD    js      wgc_api.251C4433
+    .text:251C43FD    js      short loc_251C4433
+    .text:251C43FF    cmp     dword ptr [esi+38h], 0
+    .text:251C4403    jz      short loc_251C4433
+    .text:251C4405    cmp     dword ptr [esi+3Ch], 8
+    .text:251C4409    lea     eax, [esi+28h]
+    .text:251C440C    jb      short loc_251C4410
 
 sr\_test\_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the ``test eax, eax``. Fortunately, windows is a fan of __cdecl, which means the caller cleans up the stack and we can most of the time get away with nuking parametrized calls. So that's what we do.
 

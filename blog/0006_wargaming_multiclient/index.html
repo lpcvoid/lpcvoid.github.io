@@ -47,7 +47,7 @@
               <h4 class="float-right">Published on: 2020-10-25</h4>
             </div>
             <div>
-                <p>This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For everybody else, I hope you find it interesting.</p>
+                <p>This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For anybody who wishes to read about an easy patch, I hope you enjoy.</p>
 <p>I have been playing a video game called World of Tanks for quite some time now with my father. For a few weeks now, we have been going back and forth between World of Tanks, and Wargamings newer installment, World of Warships. Unfortunately, you cannot by default launch both game clients at the same time. It&#x27;s time we fix this.</p>
 <p>When you want to implement a restriction like that, there are pretty many options:</p>
 <ul>
@@ -57,10 +57,31 @@
 </ul>
 <p>The last point has many advantages. First, your mutex actually gets closed by the system once your application terminates (or crashes). This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw">CreateMutexW</a> and <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw">OpenMutexW</a>. Or the *A variants if you&#x27;re inclined.</p>
 <p>The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?</p>
-<p>Well, that&#x27;s what the Wargaming launcher does. The API to this launcher lives in wgc_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named <em>wgc<em>running</em>games_mtx</em>. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:</p>
-<pre><code>.text:251C43F6    call    sr_test_mutex &#x2F;&#x2F;&lt;--- this is the test call
+<p>Well, that&#x27;s what the Wargaming launcher does. The API to this launcher lives in wgc_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named <em>wgc_running_games_mtx</em>. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:</p>
+<pre><code>.text:251C43C0    push    edi
+.text:251C43C1    push    eax
+.text:251C43C2    lea     eax, [ebp+var_C]
+.text:251C43C5    mov     large fs:0, eax
+.text:251C43CB    mov     [ebp+var_10], esp
+.text:251C43CE    mov     esi, ecx
+.text:251C43D0    cmp     dword ptr [esi+40h], 0
+.text:251C43D4    lea     eax, [ebp+var_15]
+.text:251C43D7    mov     [ebp+var_4], 0
+.text:251C43DE    lea     ecx, [ebp+var_24]
+.text:251C43E1    mov     [ebp+var_24], eax
+.text:251C43E4    setnz   [ebp+var_15]
+.text:251C43E8    lea     eax, [ebp+arg_0]
+.text:251C43EB    mov     [ebp+var_1C], esi
+.text:251C43EE    push    offset wgc_api.252C5E7C
+.text:251C43F3    mov     [ebp+var_20], eax
+.text:251C43F6    call    sr_test_mutex   ; nop this and set eax to 0
 .text:251C43FB    test    eax, eax
-.text:251C43FD    js      wgc_api.251C4433</code></pre>
+.text:251C43FD    js      short loc_251C4433
+.text:251C43FF    cmp     dword ptr [esi+38h], 0
+.text:251C4403    jz      short loc_251C4433
+.text:251C4405    cmp     dword ptr [esi+3Ch], 8
+.text:251C4409    lea     eax, [esi+28h]
+.text:251C440C    jb      short loc_251C4410</code></pre>
 <p>sr_test_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the <code>test eax, eax</code>. Fortunately, windows is a fan of __cdecl, which means the caller cleans up the stack and we can most of the time get away with nuking parametrized calls. So that&#x27;s what we do.</p>
 <pre><code>.text:251C43F6    xor     eax,eax
 .text:251C43F8    nop
@@ -83,7 +104,7 @@
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-25 21:19:42.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-26 07:12:32.</div>
     </div>
 
 </body>
