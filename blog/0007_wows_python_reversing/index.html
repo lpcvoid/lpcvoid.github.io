@@ -53,9 +53,8 @@
 <p>The archive contains a boatload (pun intended) of pyc files, which are python scripts compiled to a bytecode representation. This format, under normal circumstances, only allows for faster loading of files, since the loader can skip the tokenizing&#x2F;parsing step and directly load the already processed bytecode for execution. In this case though, decompyle refuses to dissasemble the pyc files.</p>
 <p>Time to fire up x64dbg and IDA.</p>
 <p>It quickly becomes apparent that WoWs uses zipimport for processing that whole zip file at once. </p>
-<p>As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out zipimport source code.</p>
-<p>https:&#x2F;&#x2F;github.com&#x2F;qsnake&#x2F;python&#x2F;blob&#x2F;master&#x2F;src&#x2F;Modules&#x2F;zipimport.c</p>
-<p>Here, the function we are interested in is called zipimporter<em>load</em>module. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the PySys_WriteStderr function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.</p>
+<p>As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out <a href="https://github.com/qsnake/python/blob/master/src/Modules/zipimport.c">zipimport source code</a>.</p>
+<p>Here, the function we are interested in is called <strong>zipimporter_load_module</strong>. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the <strong>PySys_WriteStderr</strong> function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.</p>
 <pre><code>bp 0x01CC1425,1
 start:
 log &quot;{s:[ebp-4]}&quot;
@@ -128,7 +127,7 @@ uint8[] data;</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:42:58.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:47:10.</div>
     </div>
 
 </body>

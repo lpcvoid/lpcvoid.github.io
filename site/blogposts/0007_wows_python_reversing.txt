@@ -14,11 +14,9 @@ Time to fire up x64dbg and IDA.
 
 It quickly becomes apparent that WoWs uses zipimport for processing that whole zip file at once. 
 
-As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out zipimport source code.
+As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out [zipimport source code](https://github.com/qsnake/python/blob/master/src/Modules/zipimport.c).
 
-https://github.com/qsnake/python/blob/master/src/Modules/zipimport.c
-
-Here, the function we are interested in is called zipimporter_load_module. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the PySys_WriteStderr function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.
+Here, the function we are interested in is called __zipimporter\_load\_module__. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the __PySys\_WriteStderr__ function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.
 
     bp 0x01CC1425,1
     start:
