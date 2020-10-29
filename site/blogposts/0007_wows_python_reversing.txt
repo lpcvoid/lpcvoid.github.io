@@ -2,9 +2,9 @@ TITLE: Deobfuscation and dumping the Python scripts of World of Warships
 DATE: 2020-10-29
 -------------------------
 
-A while ago I wrote a blog post about patching Wargaming's World of Warships. Now, I was interested to attack their Python subsystem, which might be interesting for various intents. This post attempts to document my research.
+A while ago I wrote a blog post about patching Wargaming's World of Warships. Now, I was interested in attacking their Python subsystem, which might be interesting for various intents. This post attempts to document my research.
 
-WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that things like decompyle will not work out of the box. They actually modified a few functions of cpython do include a obfusication.
+WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that programs like [decompyle6](https://github.com/rocky/python-uncompyle6/) will not work out of the box. They actually modified a few functions of cpython to include an obfusication scheme.
 
 First of all, a quick look at the files that come with WoWs reveals that there exist a scripts.zip within a subdirectory. It is a regular zip file and can be opened with a utility such as 7zip. Kind of surprised that they did not mangle the zip format to dissalow this, but that was maybe decided against when developing this feature because it will stop the devs themselves to quickly check their archives. 
 

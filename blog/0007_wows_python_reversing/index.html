@@ -47,8 +47,8 @@
               <h4 class="float-right">Published on: 2020-10-29</h4>
             </div>
             <div>
-                <p>A while ago I wrote a blog post about patching Wargaming&#x27;s World of Warships. Now, I was interested to attack their Python subsystem, which might be interesting for various intents. This post attempts to document my research.</p>
-<p>WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that things like decompyle will not work out of the box. They actually modified a few functions of cpython do include a obfusication.</p>
+                <p>A while ago I wrote a blog post about patching Wargaming&#x27;s World of Warships. Now, I was interested in attacking their Python subsystem, which might be interesting for various intents. This post attempts to document my research.</p>
+<p>WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that programs like <a href="https://github.com/rocky/python-uncompyle6/">decompyle6</a> will not work out of the box. They actually modified a few functions of cpython to include an obfusication scheme.</p>
 <p>First of all, a quick look at the files that come with WoWs reveals that there exist a scripts.zip within a subdirectory. It is a regular zip file and can be opened with a utility such as 7zip. Kind of surprised that they did not mangle the zip format to dissalow this, but that was maybe decided against when developing this feature because it will stop the devs themselves to quickly check their archives. </p>
 <p>The archive contains a boatload (pun intended) of pyc files, which are python scripts compiled to a bytecode representation. This format, under normal circumstances, only allows for faster loading of files, since the loader can skip the tokenizing&#x2F;parsing step and directly load the already processed bytecode for execution. In this case though, decompyle refuses to dissasemble the pyc files.</p>
 <p>Time to fire up x64dbg and IDA.</p>
@@ -127,7 +127,7 @@ uint8[] data;</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:52:06.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:54:40.</div>
     </div>
 
 </body>
