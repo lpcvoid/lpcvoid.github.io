@@ -1,0 +1,136 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - Deobfuscation and dumping the Python scripts of World of Warships</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right "><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">Deobfuscation and dumping the Python scripts of World of Warships</h3>
+              <h4 class="float-right">Published on: 2020-10-29</h4>
+            </div>
+            <div>
+                <p>A while ago I wrote a blog post about patching Wargaming&#x27;s World of Warships. Now, I was interested to attack their Python subsystem, which might be interesting for various intents. This post attempts to document my research.</p>
+<p>WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that things like decompyle will not work out of the box. They actually modified a few functions of cpython do include a obfusication.</p>
+<p>First of all, a quick look at the files that come with WoWs reveals that there exist a scripts.zip within a subdirectory. It is a regular zip file and can be opened with a utility such as 7zip. Kind of surprised that they did not mangle the zip format to dissalow this, but that was maybe decided against when developing this feature because it will stop the devs themselves to quickly check their archives. </p>
+<p>The archive contains a boatload (pun intended) of pyc files, which are python scripts compiled to a bytecode representation. This format, under normal circumstances, only allows for faster loading of files, since the loader can skip the tokenizing&#x2F;parsing step and directly load the already processed bytecode for execution. In this case though, decompyle refuses to dissasemble the pyc files.</p>
+<p>Time to fire up x64dbg and IDA.</p>
+<p>It quickly becomes apparent that WoWs uses zipimport for processing that whole zip file at once. </p>
+<p>As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out zipimport source code.</p>
+<p>https:&#x2F;&#x2F;github.com&#x2F;qsnake&#x2F;python&#x2F;blob&#x2F;master&#x2F;src&#x2F;Modules&#x2F;zipimport.c</p>
+<p>Here, the function we are interested in is called zipimporter<em>load</em>module. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the PySys_WriteStderr function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.</p>
+<pre><code>bp 0x01CC1425,1
+start:
+log &quot;{s:[ebp-4]}&quot;
+run
+goto start</code></pre>
+<p>The log tab then contains entires like this:</p>
+<pre><code>153.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+154.&quot;mbad083ab&quot;
+155.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+156.&quot;package_profiles_helpers&quot;
+157.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+158.&quot;GameParams&quot;
+159.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+160.&quot;mbd1b28d9&quot;
+161.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+162.&quot;m15fb041b&quot;
+163.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+164.&quot;ConsumablesConstants&quot;</code></pre>
+<p>Which tells us not much, since these are actually just the files that we already saw within the zip, but at least we found an entry point to start digging around. </p>
+<p>Upon digging around more, and following the control flow, I stumbled upon the <strong>unmarshal_code</strong> function from the <strong>zipimport</strong> cpython module. This looks exactly like the sort of thing we are looking for. </p>
+<p>First off, a bit of information about the pyc file structure, it is very simple:</p>
+<pre><code>int32   magic;
+int32   timestamp;
+uint8[] data;</code></pre>
+<p>Since pyc files can be empty and still valid, it&#x27;s not surprising that the function checks the size first:</p>
+<pre><code>.text:0104022B 014                 cmp     ebx, 8                  ; ebx contains size of pyc
+.text:0104022E 014                 jge     short loc_1040271       ; check (size =&gt; 8); jump to loc_1040271 if true
+.text:01040230 014                 mov     esi, dword_8F53DD4      ; 
+.text:01040236 014                 mov     ecx, offset aBadPycData ; &quot;bad pyc data&quot;
+.text:0104023B 014                 call    PyErr_SetString_0       ; document what&#x27;s wrong using cpython PyErr_SetString</code></pre>
+<p>the next two checks are simple too, namely checks for the magic number and the timestamp. The magic number it expects is 0x0A0DF303, which corresponds to python 2.7. You are behind the times, Wargaming :)</p>
+<p>Up to this point there where no surprises. Once all the trivial pyc checks are done, the game starts unmarshalling code.</p>
+<pre><code>.text:0104033C 014                 lea     edx, [ebx-8]    ; length of code, minus the 8 byte header
+.text:0104033F 014                 lea     ecx, [edi+8]    ; marshalled code starts at 8. byte
+.text:01040342 014                 call    PyMarshal_ReadObjectFromString</code></pre>
+<p>As far as I can see, PyMarshal<em>ReadObjectFromString does nothing out of the ordinary. It simply wraps </em><em>r_object</em>_ call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before <code>ret</code>?</p>
+<p>Magic starts happening here. They sneak a xor based obfusication into here.</p>
+<pre><code>.text:00F3DF76 02C                 cmp     esi, eax
+.text:00F3DF78 02C                 jge     short loc_F3DF8E
+.text:00F3DF7A 02C                 mov     eax, esi
+.text:00F3DF7C 02C                 mov     ecx, [ebp+var_C]
+.text:00F3DF7F 02C                 cdq
+.text:00F3DF80 02C                 idiv    ebx
+.text:00F3DF82 02C                 mov     al, [edx+ecx]
+.text:00F3DF85 02C                 mov     ecx, [ebp+var_14]
+.text:00F3DF88 02C                 xor     [esi+ecx], al   ; decrypt bytes from pyc, make valid base64
+.text:00F3DF8B 02C                 inc     esi
+.text:00F3DF8C 02C                 jmp     short loc_F3DF30</code></pre>
+<p>After this part is done, we can see a long string, which looks suspiciously like base64. And it actually is! After decoding, we get this:</p>
+<pre><code>00000000  78 9C CD 59 0B 78 1C 55 15 3E B3 9B 36 EF F4 41  xœÍY.x.U.&gt;³›6ïôA
+00000010  D3 24 6D 69 A7 05 4A 48 9B B6 69 A1 49 6B 5B 4A  Ó$mi§.JH›¶i¡Ik[J
+00000020  A9 08 02 05 B6 20 48 29 61 B3 33 9B CC 66 B3 9B  ©...¶ H)a³3›Ìf³›
+....</code></pre>
+<p>Hold up, i&#x27;ve seen these two first bytes before! Indeed, they are zlib header bytes. They are the CMF and FLG bytes, defined in the <a href="https://tools.ietf.org/html/rfc1950#page-4">standard</a>. CMF means &quot;Compression Method and flags&quot; and describes both the method (such as deflate) and the compression window size. FLG are some flags regarding the compression. In short, 78 9C boil down to the default zlib compression with deflate.</p>
+<p>After zlib decompression, we are greated with readable strings, yay!</p>
+<pre><code>000005A0  6D 6F 64 75 6C 65 74 08 00 00 00 5F 5F 66 69 6C  modulet....__fil
+000005B0  65 5F 5F 74 08 00 00 00 67 43 50 4C 42 78 38 36  e__t....gCPLBx86
+000005C0  74 0A 00 00 00 31 36 30 31 36 36 39 33 33 32 69  t....1601669332i
+000005D0  00 00 00 00 74 0B 00 00 00 63 6F 6C 6C 65 63 74  ....t....collect
+000005E0  69 6F 6E 73 74 09 00 00 00 75 74 66 38 5F 74 65  ionst....utf8_te
+000005F0  73 74 74 08 00 00 00 63 6F 70 79 5F 72 65 67 69  stt....copy_regi</code></pre>
+<p>Now, lets add the 8 header bytes back to make a valid pyc file and try running the result through decompyle6.</p>
+<pre><code>ImportError: Ill-formed bytecode file test.pyc
+&lt;class &#x27;KeyError&#x27;&gt;; &quot;marshaltype key &#x27;{&#x27; (dict) not implemented&quot;  </code></pre>
+<p>Well that&#x27;s a bummer. xdis actually did not implement dict unmarshalling, and I don&#x27;t know why. I need to do more research about Python bytecode, maybe this is the result of more obfusication at some bytecode level. I&#x27;ll get back here once I found out more.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:42:58.</div>
+    </div>
+
+</body>
+
+</html>

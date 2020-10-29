@@ -1,0 +1,109 @@
+TITLE: Deobfuscation and dumping the Python scripts of World of Warships
+DATE: 2020-10-29
+-------------------------
+
+A while ago I wrote a blog post about patching Wargaming's World of Warships. Now, I was interested to attack their Python subsystem, which might be interesting for various intents. This post attempts to document my research.
+
+WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that things like decompyle will not work out of the box. They actually modified a few functions of cpython do include a obfusication.
+
+First of all, a quick look at the files that come with WoWs reveals that there exist a scripts.zip within a subdirectory. It is a regular zip file and can be opened with a utility such as 7zip. Kind of surprised that they did not mangle the zip format to dissalow this, but that was maybe decided against when developing this feature because it will stop the devs themselves to quickly check their archives. 
+
+The archive contains a boatload (pun intended) of pyc files, which are python scripts compiled to a bytecode representation. This format, under normal circumstances, only allows for faster loading of files, since the loader can skip the tokenizing/parsing step and directly load the already processed bytecode for execution. In this case though, decompyle refuses to dissasemble the pyc files.
+
+Time to fire up x64dbg and IDA.
+
+It quickly becomes apparent that WoWs uses zipimport for processing that whole zip file at once. 
+
+As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out zipimport source code.
+
+https://github.com/qsnake/python/blob/master/src/Modules/zipimport.c
+
+Here, the function we are interested in is called zipimporter_load_module. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the PySys_WriteStderr function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.
+
+    bp 0x01CC1425,1
+    start:
+    log "{s:[ebp-4]}"
+    run
+    goto start
+
+The log tab then contains entires like this:
+
+    153.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    154."mbad083ab"
+    155.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    156."package_profiles_helpers"
+    157.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    158."GameParams"
+    159.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    160."mbd1b28d9"
+    161.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    162."m15fb041b"
+    163.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+    164."ConsumablesConstants"
+
+Which tells us not much, since these are actually just the files that we already saw within the zip, but at least we found an entry point to start digging around. 
+
+Upon digging around more, and following the control flow, I stumbled upon the __unmarshal\_code__ function from the __zipimport__ cpython module. This looks exactly like the sort of thing we are looking for. 
+
+First off, a bit of information about the pyc file structure, it is very simple:
+
+    int32   magic;
+    int32   timestamp;
+    uint8[] data;
+
+Since pyc files can be empty and still valid, it's not surprising that the function checks the size first:
+
+    .text:0104022B 014                 cmp     ebx, 8                  ; ebx contains size of pyc
+    .text:0104022E 014                 jge     short loc_1040271       ; check (size => 8); jump to loc_1040271 if true
+    .text:01040230 014                 mov     esi, dword_8F53DD4      ; 
+    .text:01040236 014                 mov     ecx, offset aBadPycData ; "bad pyc data"
+    .text:0104023B 014                 call    PyErr_SetString_0       ; document what's wrong using cpython PyErr_SetString
+
+the next two checks are simple too, namely checks for the magic number and the timestamp. The magic number it expects is 0x0A0DF303, which corresponds to python 2.7. You are behind the times, Wargaming :)
+
+Up to this point there where no surprises. Once all the trivial pyc checks are done, the game starts unmarshalling code.
+
+    .text:0104033C 014                 lea     edx, [ebx-8]    ; length of code, minus the 8 byte header
+    .text:0104033F 014                 lea     ecx, [edi+8]    ; marshalled code starts at 8. byte
+    .text:01040342 014                 call    PyMarshal_ReadObjectFromString
+
+As far as I can see, PyMarshal_ReadObjectFromString does nothing out of the ordinary. It simply wraps __r\_object__ call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before ``ret``?
+
+Magic starts happening here. They sneak a xor based obfusication into here.
+
+    .text:00F3DF76 02C                 cmp     esi, eax
+    .text:00F3DF78 02C                 jge     short loc_F3DF8E
+    .text:00F3DF7A 02C                 mov     eax, esi
+    .text:00F3DF7C 02C                 mov     ecx, [ebp+var_C]
+    .text:00F3DF7F 02C                 cdq
+    .text:00F3DF80 02C                 idiv    ebx
+    .text:00F3DF82 02C                 mov     al, [edx+ecx]
+    .text:00F3DF85 02C                 mov     ecx, [ebp+var_14]
+    .text:00F3DF88 02C                 xor     [esi+ecx], al   ; decrypt bytes from pyc, make valid base64
+    .text:00F3DF8B 02C                 inc     esi
+    .text:00F3DF8C 02C                 jmp     short loc_F3DF30
+
+After this part is done, we can see a long string, which looks suspiciously like base64. And it actually is! After decoding, we get this:
+
+    00000000  78 9C CD 59 0B 78 1C 55 15 3E B3 9B 36 EF F4 41  xœÍY.x.U.>³›6ïôA
+    00000010  D3 24 6D 69 A7 05 4A 48 9B B6 69 A1 49 6B 5B 4A  Ó$mi§.JH›¶i¡Ik[J
+    00000020  A9 08 02 05 B6 20 48 29 61 B3 33 9B CC 66 B3 9B  ©...¶ H)a³3›Ìf³›
+    ....
+
+Hold up, i've seen these two first bytes before! Indeed, they are zlib header bytes. They are the CMF and FLG bytes, defined in the [standard](https://tools.ietf.org/html/rfc1950#page-4). CMF means "Compression Method and flags" and describes both the method (such as deflate) and the compression window size. FLG are some flags regarding the compression. In short, 78 9C boil down to the default zlib compression with deflate.
+
+After zlib decompression, we are greated with readable strings, yay!
+
+    000005A0  6D 6F 64 75 6C 65 74 08 00 00 00 5F 5F 66 69 6C  modulet....__fil
+    000005B0  65 5F 5F 74 08 00 00 00 67 43 50 4C 42 78 38 36  e__t....gCPLBx86
+    000005C0  74 0A 00 00 00 31 36 30 31 36 36 39 33 33 32 69  t....1601669332i
+    000005D0  00 00 00 00 74 0B 00 00 00 63 6F 6C 6C 65 63 74  ....t....collect
+    000005E0  69 6F 6E 73 74 09 00 00 00 75 74 66 38 5F 74 65  ionst....utf8_te
+    000005F0  73 74 74 08 00 00 00 63 6F 70 79 5F 72 65 67 69  stt....copy_regi
+
+Now, lets add the 8 header bytes back to make a valid pyc file and try running the result through decompyle6.
+
+    ImportError: Ill-formed bytecode file test.pyc
+    <class 'KeyError'>; "marshaltype key '{' (dict) not implemented"  
+
+Well that's a bummer. xdis actually did not implement dict unmarshalling, and I don't know why. I need to do more research about Python bytecode, maybe this is the result of more obfusication at some bytecode level. I'll get back here once I found out more.
