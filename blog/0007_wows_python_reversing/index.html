@@ -90,7 +90,7 @@ uint8[] data;</code></pre>
 <pre><code>.text:0104033C 014                 lea     edx, [ebx-8]    ; length of code, minus the 8 byte header
 .text:0104033F 014                 lea     ecx, [edi+8]    ; marshalled code starts at 8. byte
 .text:01040342 014                 call    PyMarshal_ReadObjectFromString</code></pre>
-<p>As far as I can see, PyMarshal<em>ReadObjectFromString does nothing out of the ordinary. It simply wraps </em><em>r_object</em>_ call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before <code>ret</code>?</p>
+<p>As far as I can see, <strong>PyMarshal_ReadObjectFromString</strong> does nothing out of the ordinary. It simply wraps <strong>r_object</strong> call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before <code>ret</code>?</p>
 <p>Magic starts happening here. They sneak a xor based obfusication into here.</p>
 <pre><code>.text:00F3DF76 02C                 cmp     esi, eax
 .text:00F3DF78 02C                 jge     short loc_F3DF8E
@@ -127,7 +127,7 @@ uint8[] data;</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:47:10.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-10-29 09:52:06.</div>
     </div>
 
 </body>
