@@ -35,7 +35,7 @@ So, what can we do against this? I decided to write a small program which takes 
     POP_JUMP_IF_TRUE        115
     FOR_ITER                93
 
-All non executed areas of code then get a _nop_ (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a _JUMP_ABSOLUTE_ instruction, and that's easy enough to detect with the static algorithm I wrote. Consider this though:
+All non executed areas of code then get a _nop_ (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a _JUMP\_ABSOLUTE_ instruction, and that's easy enough to detect with the static algorithm I wrote. Consider this though:
 
     LOAD_CONST         3
     POP_JUMP_IF_TRUE   42 

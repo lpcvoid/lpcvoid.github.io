@@ -68,14 +68,14 @@ JUMP_ABSOLUTE           113
 POP_JUMP_IF_FALSE       114
 POP_JUMP_IF_TRUE        115
 FOR_ITER                93</code></pre>
-<p>All non executed areas of code then get a <strong>nop</strong> (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a JUMP_ABSOLUTE instruction, and that&#x27;s easy enough to detect with the static algorithm I wrote. Consider this though:</p>
+<p>All non executed areas of code then get a <em>nop</em> (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a <em>JUMP_ABSOLUTE</em> instruction, and that&#x27;s easy enough to detect with the static algorithm I wrote. Consider this though:</p>
 <pre><code>LOAD_CONST         3
 POP_JUMP_IF_TRUE   42 
 ...junk bytes here...
 IMPORT_NAME        1  #address 42</code></pre>
-<p>This code pushes the const at index 3 onto the stack. POP_JUMP_IF_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those junk instructions too.</p>
+<p>This code pushes the const at index 3 onto the stack. <em>POP_JUMP_IF_TRUE</em> checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to <em>JUMP_ABSOLUTE</em>. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those junk instructions too.</p>
 <h4 id="insertion-of-junk-constants-and-local-names">Insertion of junk constants and local names</h4>
-<p>Another thing that this obfuscator does is insert random strings into both the constant and local names. It then goes through the bytecode and increments all LOAD_CONST and LOAD_NAME opcode arguments by the number of junk strings added to the respective arrays. This is a simple but effective obfuscation. Fortunately, it is also simple to revert if you can identify junk locals and global names by some shared attribute. In this case, the junk names include at least one space character.</p>
+<p>Another thing that this obfuscator does is insert random strings into both the constant and local names. It then goes through the bytecode and increments all <em>LOAD_CONST</em> and <em>LOAD_NAME</em> opcode arguments by the number of junk strings added to the respective arrays. This is a simple but effective obfuscation. Fortunately, it is also simple to revert if you can identify junk locals and global names by some shared attribute. In this case, the junk names include at least one space character.</p>
 <h4 id="open-questions">Open questions</h4>
 <p>I wonder why they did not obfuscate opcodes, or even change the opcode mapping. That would have been a royal pain, since then I would have needed to figure out what function maps to what integer value. Or, why did they not obfuscate arguments or length of argument bytes? This too would have taken some time to reverse. Writing a junk code insertion routine is a lot more challenging than changing a bit of cPython code. So why did they not go for these low hanging fruit? Maybe I do not know the Python VM enough to understand this. If you know or want to wager a guess, I would be interested to hear.</p>
 
@@ -85,7 +85,7 @@ IMPORT_NAME        1  #address 42</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-11-08 12:22:07.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-11-08 12:27:35.</div>
     </div>
 
 </body>
