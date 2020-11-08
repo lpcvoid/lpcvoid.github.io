@@ -1,0 +1,91 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - Dejunking and reconstructing bytecode</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right "><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">Dejunking and reconstructing bytecode</h3>
+              <h4 class="float-right">Published on: 2020-11-08</h4>
+            </div>
+            <div>
+                <p>In my last blog post, <a href="https://lpcvoid.com/blog/0007_wows_python_reversing/index.html">here</a>, I figured that the Python bytecode could be obfuscated somewhat. Turns out it is, and this post will be a run down of my findings and the problems I encountered. It is a work in progress, so there could be updates at some point. I&#x27;ll change the title in that case.</p>
+<p>This post concerns the obsolete 2.7 version of Python, since that&#x27;s what the target application embeds.</p>
+<p>Python bytecode is pretty simple. You have one byte of opcode, followed by two optional bytes of <strong>argument</strong> (that&#x27;s what cPython, the reference implementation, calls it). A list of opcodes is contained in opcode.h. Opcodes that are smaller than 90 do not expect any argument, and are thus only one byte in size.</p>
+<p>There exist disassemblers and even decompilers for this bytecode, and they work well for standard bytecode that was not messed with. The one I am looking at has two obfusications (that I am aware of at this point) though. Let&#x27;s look at them.</p>
+<h4 id="insertion-of-junk-instructions-to-confuse-disassemblers">Insertion of junk instructions to confuse disassemblers</h4>
+<p>Normally, a disassembler would look at a set of instructions and decode them into some sort of text representation sequentially. For example, take the following bytecode:</p>
+<pre><code>6401006400006c00007d0000</code></pre>
+<p>This decodes to:</p>
+<pre><code>LOAD_CONST      1 (-1)
+LOAD_CONST      0 (None)
+IMPORT_NAME     0 (sys)
+STORE_FAST      0 (sys)</code></pre>
+<p>Which is simple enough. The disassembler relies on the bytecode being correct though for a number of factors. For one, it decides how many bytes of argument to read by looking at the integer value of the opcode. If it&#x27;s under 90, it treats the bytes after the opcode as a new opcode and not as argument data. This means that it&#x27;s possible to write a program that can stop disassemblers by taking bytecode, inserting junk instructions or random bytes into it at some place, and then recalculate jumps and branches to account for this. The VM does not care much when executing this manipulated bytecode, as long as the obfuscator took care to direct it around the junk using jumps or other means of control flow. But a disassembler that reads code top down without dynamic analysis will run into these junk areas and produce completely wrong output, or even crash.</p>
+<p>So, what can we do against this? I decided to write a small program which takes bytecode and recursively traces it, running along all branches and marking code paths which can actually be executed. This is easy because there aren&#x27;t that many branching opcodes. In fact, these are the ones I identified:</p>
+<pre><code>JUMP_FORWARD            110
+JUMP_IF_FALSE_OR_POP    111
+JUMP_IF_TRUE_OR_POP     112
+JUMP_ABSOLUTE           113
+POP_JUMP_IF_FALSE       114
+POP_JUMP_IF_TRUE        115
+FOR_ITER                93</code></pre>
+<p>All non executed areas of code then get a <strong>nop</strong> (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a JUMP_ABSOLUTE instruction, and that&#x27;s easy enough to detect with the static algorithm I wrote. Consider this though:</p>
+<pre><code>LOAD_CONST         3
+POP_JUMP_IF_TRUE   421</code></pre>
+<p>This code pushes the const at index 3 onto the stack. POP_JUMP_IF_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those hidden junk instructions too.</p>
+<h4 id="insertion-of-junk-constants-and-local-names">Insertion of junk constants and local names</h4>
+<p>Another thing that this obfuscator does is insert random strings into both the constant and local names. It then goes through the bytecode and increments all LOAD_CONST and LOAD_NAME opcode arguments by the number of junk strings added to the respective arrays. This is a simple but effective obfuscation. Fortunately, it is also simple to revert if you can identify junk locals and global names by some shared attribute. In this case, the junk names include at least one space character.</p>
+<h4 id="open-questions">Open questions</h4>
+<p>I wonder why they did not obfuscate opcodes, or even change the opcode mapping. That would have been a royal pain, since then I would have needed to figure out what function maps to what integer value. Or, why did they not obfuscate arguments or length of argument bytes? This too would have taken some time to reverse. Writing a junk code insertion routine is a lot more challenging than changing a bit of cPython code. So why did they not go for these low hanging fruit? Maybe I do not know the Python VM enough to understand this. If you know or want to wager a guess, I would be interested to hear.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-11-08 12:15:52.</div>
+    </div>
+
+</body>
+
+</html>
