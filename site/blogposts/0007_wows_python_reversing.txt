@@ -67,19 +67,36 @@ Up to this point there where no surprises. Once all the trivial pyc checks are d
 
 As far as I can see, __PyMarshal\_ReadObjectFromString__ does nothing out of the ordinary. It simply wraps __r\_object__ call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before ``ret``?
 
-Magic starts happening here. They sneaked an xor based obfusication into there.
+Magic starts happening here. To understand what happens here, we need to look at the structure of a pyc file yet again.
 
-    .text:00F3DF76 02C                 cmp     esi, eax
+The section I marked __data__ in the struct is marshaled python bytecode. This marshaling is a recursive algorithm that wraps a lot of different data types (strings, longs, bytes, even complex types such as lists and tuples) within one large root **code** object. This code object has several different sub members. One of it is a section called __co\_code__, which contains the raw bytecode. Another one is __co\_consts__, which contains a list of indexed constants that opcodes such as **LOAD\_CONST** use. Here, wargaming did something strange. It actually misuses the const section of the root code object as a data storage for storing encrypted data. This data then gets XORed bytewise with the content of the code section, using the size of the code section in modulus to prevent overflow.
+
+    ...
+    .text:00F3DF76 02C                 cmp     esi, eax             ; exit if we are at end of const section
     .text:00F3DF78 02C                 jge     short loc_F3DF8E
-    .text:00F3DF7A 02C                 mov     eax, esi
-    .text:00F3DF7C 02C                 mov     ecx, [ebp+var_C]
-    .text:00F3DF7F 02C                 cdq
-    .text:00F3DF80 02C                 idiv    ebx
-    .text:00F3DF82 02C                 mov     al, [edx+ecx]
-    .text:00F3DF85 02C                 mov     ecx, [ebp+var_14]
-    .text:00F3DF88 02C                 xor     [esi+ecx], al   ; decrypt bytes from pyc, make valid base64
-    .text:00F3DF8B 02C                 inc     esi
-    .text:00F3DF8C 02C                 jmp     short loc_F3DF30
+    .text:00F3DF7A 02C                 mov     eax, esi             ; move index to eax for idiv
+    .text:00F3DF7C 02C                 mov     ecx, [ebp+var_C]     ; offset to code buffer
+    .text:00F3DF7F 02C                 cdq                          ; sign extension
+    .text:00F3DF80 02C                 idiv    ebx                  ; int div for mod operation
+    .text:00F3DF82 02C                 mov     al, [edx+ecx]        ; edx contains remainder, get next code byte      
+    .text:00F3DF85 02C                 mov     ecx, [ebp+var_14]    ; get const buffer offset
+    .text:00F3DF88 02C                 xor     [esi+ecx], al        ; xor code byte with const byte
+    .text:00F3DF8B 02C                 inc     esi                  ; increment index
+    .text:00F3DF8C 02C                 jmp     short loc_F3DF30     ; continue for next index
+    ...
+
+If we type this out (using python, how ironic), we get something like this:
+
+    f = open(sys.argv[1], "rb") #some pyc passed as parameter
+    magic = f.read(4)
+    moddate = f.read(4)
+    codeobj = marshal.loads(f.read()) #unmarshal the code object
+    size_code = len(codeobj.co_code)
+    size_const = len(codeobj.co_consts[3])
+    encrypted_code = codeobj.co_code[:]
+    decrypted_const = []
+    for x in range(size_const):
+        decrypted_const.append(ord(codeobj.co_consts[3][x]) ^ ord(encrypted_code[x % size_code]))
 
 After this part is done, we can see a long string, which looks suspiciously like base64. And it actually is! After decoding, we get this:
 
