@@ -38,9 +38,11 @@ So, what can we do against this? I decided to write a small program which takes 
 All non executed areas of code then get a __nop__ (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a JUMP_ABSOLUTE instruction, and that's easy enough to detect with the static algorithm I wrote. Consider this though:
 
     LOAD_CONST         3
-    POP_JUMP_IF_TRUE   421
+    POP_JUMP_IF_TRUE   42 
+    ...junk bytes here...
+    IMPORT_NAME        1  #address 42
 
-This code pushes the const at index 3 onto the stack. POP\_JUMP\_IF\_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP\_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those hidden junk instructions too.
+This code pushes the const at index 3 onto the stack. POP\_JUMP\_IF\_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP\_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those junk instructions too.
 
 #### Insertion of junk constants and local names
 

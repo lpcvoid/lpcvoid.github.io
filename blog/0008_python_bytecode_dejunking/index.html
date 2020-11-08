@@ -70,8 +70,10 @@ POP_JUMP_IF_TRUE        115
 FOR_ITER                93</code></pre>
 <p>All non executed areas of code then get a <strong>nop</strong> (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a JUMP_ABSOLUTE instruction, and that&#x27;s easy enough to detect with the static algorithm I wrote. Consider this though:</p>
 <pre><code>LOAD_CONST         3
-POP_JUMP_IF_TRUE   421</code></pre>
-<p>This code pushes the const at index 3 onto the stack. POP_JUMP_IF_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those hidden junk instructions too.</p>
+POP_JUMP_IF_TRUE   42 
+...junk bytes here...
+IMPORT_NAME        1  #address 42</code></pre>
+<p>This code pushes the const at index 3 onto the stack. POP_JUMP_IF_TRUE checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to JUMP_ABSOLUTE. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those junk instructions too.</p>
 <h4 id="insertion-of-junk-constants-and-local-names">Insertion of junk constants and local names</h4>
 <p>Another thing that this obfuscator does is insert random strings into both the constant and local names. It then goes through the bytecode and increments all LOAD_CONST and LOAD_NAME opcode arguments by the number of junk strings added to the respective arrays. This is a simple but effective obfuscation. Fortunately, it is also simple to revert if you can identify junk locals and global names by some shared attribute. In this case, the junk names include at least one space character.</p>
 <h4 id="open-questions">Open questions</h4>
@@ -83,7 +85,7 @@ POP_JUMP_IF_TRUE   421</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-11-08 12:15:52.</div>
+        <div class="generationmsg">Site generated using blogc 0.20.0 on 2020-11-08 12:22:07.</div>
     </div>
 
 </body>
