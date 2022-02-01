@@ -1,0 +1,173 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - Sensible connected home</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/4AYFD3FE">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">Sensible connected home</h3>
+              <h4 class="float-right">Published on: 2022-01-31</h4>
+            </div>
+            <div>
+                <p>Wew lads, it&#x27;s been a while since my last post on here. I have been meaning to write more, and this post is a result of a new strategy - whenever I research a new topic, I&#x27;ll try to document that and post the results here.</p>
+<p>So, I wish to dive into the world of home automation. I wish to avoid the buzzword &quot;smart&quot; as much as possible, so I will refer to it as &quot;connected home&quot; instead. Soon, I will be moving into my first house, and so I set off to research. This post will be updated over the course of the next few weeks, as I get my research&#x2F;prototyping done.</p>
+<p>There are a few points which are very important to me:</p>
+<ul>
+<li>I want to be able to see the current electrical load in Watts on certain wall sockets, and ideally also control their state.</li>
+<li>Analog to the sockets, I want to be able to see and control light state.</li>
+<li>It would be very cool to see which windows are open.</li>
+<li>I have not, do not and will never like the cloud. Whatever I do, I want it locally in my LAN and 100% under my control. No outside communication unless I make it so.</li>
+<li>I want to use only open source components. If I have to crack open some commercial device to reflash firmware via test points, that&#x27;s fine too.</li>
+<li>I have no bus such as KNX built into my house. I would vastly perfer a bus to any RF technology, but I am not sure I can retrofit it easily. I do have empty tubing in the walls though (one per room, down the the power box). If anybody wants to chat about this, shoot me an email!</li>
+</ul>
+<p>There seem to be three basic categories that you can buy into: <a href="https://en.wikipedia.org/wiki/Zigbee">Zigbee</a>, <a href="https://en.wikipedia.org/wiki/Z-Wave">Z-Wave</a> and WLAN. TL;DR, I chose Z-Wave, and the following is my reasoning.</p>
+<p><strong>WLAN</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>you probably already have one</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>fast, which is useless for sensors since they only send small data amounts</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>mostly proprietary, sometimes you can flash your own firmware</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>very energy hungry</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>many small IP routable devices in your home sounds bad</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>2.4 GHz congestion is bad</td>
+        </tr>
+    </tbody>
+</table>
+<p>This seems like the worst, so I&#x27;ll get it out of the way first. There are absolute shitloads of &quot;smart&quot; devices that implement connectivity using off-the-shelf chips such as ESP-8266 or <a href="https://developer.tuya.com/en/docs/iot/tuya-sandwich-wifi-and-ble-soc-board-BK7231N?id=Kao72e6net3bs">BK7231N</a>. They all have in common that they will happily connect to your WLAN and phone home into the cloud. The allure of these is that even people with absolutely no technical abilities can use them. The downside is... everything else. They are privacy invasive, energy hungry and not under your control. Sometimes, you can flash open source firmware on them (see <a href="https://github.com/ct-Open-Source/tuya-convert">here</a> as an example for a broad range of devices based off ESP-8266 and derivates), but this will still not solve another hard problem:  use a dozen of these devices and you&#x27;ll rapidly congest your 2.4GHz band. You (and your neighbors) won&#x27;t like that. Finally, WLAN is energy hungry and it&#x27;s not feasable to deply small battery powered sensors such as temperature or water sensors that can run for years on a battery. So WLAN is out of the race.</p>
+<p><strong>Zigbee</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>cheap</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>widespread</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>low energy</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>walled gardens by many different manufacturers, no guarantee that devices are compatible</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>based on 2.4GHz</td>
+        </tr>
+    </tbody>
+</table>
+<p>Zigbee is a step into the right direction. It&#x27;s a non-IP low energy protocol unfortunately based on ISM radio bands, which is 2.4GHz in most of the world. Its layers are defined in <a href="https://en.wikipedia.org/wiki/IEEE_802.15.4">IEEE 802.15.4</a>. It&#x27;s a mesh net, meaning that each mesh member uses other members to reach the gateway, which is the root of the mesh network and actually communicates with the outside. Zigbee devices on their own never communicate directly with any device outside of their mesh. There are many different (often proprietary) gateways, but of course we want the open source solutions. Fortunately, there are cheap USB dongles which work just fine and can work with a wide variety of devices. Zigbee is incredibly cheap, very widespread, and free for anybody to implement. Unfortunately, this also leads to large discrepancies in manufacturers and their implementation. Zigbee provides a means to transport data, and nothing else. The application layer is defined by the manufacturer, which implies a lot of walled gardens. In essence, any Zigbee network by a manufacturer will be exclusive to that one manufacturer. It gets more extreme when people buy into multiple manufacturers, and have multiple mesh networks at the same time, further congesting the 2.4 GHz band. The gateways have to do the heavy lifting here and speak many different protocols for each company&#x27;s devices, in order to expose them in a consistent manner to the gateway host. One product that claims to be able to do this is the Conbee II gateway, and I have ordered one to test.</p>
+<p><strong>Z-Wave</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>widespread, but less so than Zigbee</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>very reliable due to mandatory certification and testing</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>low energy</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>certification includes security testing</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>runs on 868MHz in Europe</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>standard opened up recently, but too soon to see if that helps with adoption</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>around double/triple as expensive as Zigbee devices, but still okay-ish</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>could potentially be deplaced at some point due to large companies flocking to Zigbee</td>
+        </tr>
+    </tbody>
+</table>
+<p>Z-Wave is, like Zigbee, also a mesh network which is composed of a bunch of clients (the sensors&#x2F;actors and whatnot) and a gateway. Z-Wave is a proprietary standard and defined by Sigma Designs, which was then bought by Silicon Labs. In fact, it has quite a convoluted history, starting out as technology using an unlicenced frequency band in 1999. It really was the wild west back then it seems :). From an &quot;how open is the system?&quot; standpoint, it&#x27;s unfortunate that Z-Wave only has a single vendor producing chips, even though this <a href="https://z-wavealliance.org/z-wave-specification-press-release/">could change soon</a>. It feels like vendor lockin, but maybe i&#x27;m wrong here and rigirous standardization and gatekeeping makes sense from a product perspective. In order to be granted a licence to use Z-Wave, products have to undergo large amounts of certification for interoperability. The upside is that it&#x27;s supposedly guaranteed that devices will be interoperable with each other and with whatever gateway you want to operate. This is a sore point to me though, and I only accept it at all because I control the gateway and can verify nothing leaves my local mesh into the direction of the internet. Also - only the certification process is the proprietary part, most of the specifiation is <a href="https://www.embeddedcomputing.com/application/consumer/smart-home-tech/z-wave-opens-up-as-smart-home-connectivity-battle-closes-in">open</a> it seems.</p>
+<p>Anyhow, the biggest advantage in my opinion is that it uses a 868 MHz frequency in Europe where I live, so no fighting with my computers over frequencies. The maximum device count for Z-Wave is 232, and this could be seen as a drawback, but I actually doubt I&#x27;ll ever exceed even 50 devices. And maybe the limit is even good - Z-Wave imposes some limitations, such as hop count to gateway (4 hops maximum, Zigbee does not impose limits here, which could lead to a large RTT). A downside is the increased price - due to certification, manufacturers can&#x27;t outprice Zigbee devices. This may hurt if you plan on using many sensors&#x2F;actors.</p>
+<p><strong>Z-Wave setup</strong></p>
+<p>I went with an Aeotec Z-Stick Gen5 as a gateway, and using <a href="https://github.com/domoticz/domoticz">Domoticz</a> on my little x86_64 server that&#x27;s sitting in my pantry, running in a Docker container. Still waiting for sensors to arrive for preliminary testing.</p>
+<p>...to be continued...</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2022-02-01 13:12:41. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+    </div>
+
+</body>
+
+</html>

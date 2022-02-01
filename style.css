@@ -84,18 +84,17 @@ ul {
     margin: 10px;
 }
 
-
 li a {
     display: block;
-    color: white;
+    color: #BBB;
     text-align: center;
     padding: 10px 20px;
     text-decoration: none;
 }
 
 li a:hover {
-  background-color: #FFF;
-  color: #000;
+  background-color: #BBB;
+  color: black;
 }
 
 p {
@@ -124,5 +123,24 @@ hr {
 
 code {
     font-size: medium;
-   
- }
+}
+
+table {
+    border-collapse:collapse;
+    border-spacing:0;
+    margin:0px auto;
+    font-size: 13px;
+}
+
+td {
+    border-color:black;
+    border-style:solid;
+    border-width:1px;
+    overflow:hidden;
+    padding:5px 5px;
+    word-break:normal;
+}
+
+body {
+  background-color:#BBB;
+}
