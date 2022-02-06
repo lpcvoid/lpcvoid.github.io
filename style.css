@@ -123,6 +123,7 @@ hr {
 
 code {
     font-size: medium;
+    white-space: pre-wrap;
 }
 
 table {
