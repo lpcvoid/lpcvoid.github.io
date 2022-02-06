@@ -1,0 +1,120 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - Creating a private CA and enforcing client certificates</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/4AYFD3FE">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">Creating a private CA and enforcing client certificates</h3>
+              <h4 class="float-right">Published on: 2022-02-06</h4>
+            </div>
+            <div>
+                <p>I run a lot of services on my home server for friends and family. These services need to be authenticated, which is done via username&#x2F;password mainly. Due to some poeple not knowing much about technology, I need to expose some of it to the internet (in contrast to being behind a Wireguard VPN). I do this via nginx, which I use as a reverse proxy in order to ease up certificate management. </p>
+<p>In addition to usernames and passwords, all users require client certificate authentication. This means that their browser must send a certificate when connecting and establishing a TLS session. That looks like this, on Firefox&#x2F;Ubuntu:</p>
+<p><img src="https://lpcvoid.com/img/cert_user_id_request.png" alt="User identification request under Firefox/Ubuntu"></p>
+<p>If they miss this certificate, their request does not even hit the backend, and instead a 403 error is sent. This allows an additional barrier, as people without this certificate can&#x27;t even attempt to exploit weaknesses in the services being run. Another nice advantage is that this makes username&#x2F;password leaks a lot less an issue, since there is not even a way to use stolen credentials without also stealing the certificate. Fortunately, on modern devices such as phones these certificates are stored in a secure hardware enclave, and are incredibly hard to extract, if even at all possible. Certainly not in the realm of a non-state actor. On desktop OSes, the certificates are easier to extract, but that&#x27;s unfortunately not easily solvable short of a USB or smart card enclave.</p>
+<p>Anyhow, in case you&#x27;re interested in doing the same, the process is pretty simple. The following outlines the process. OpenSSL will ask you some details, just enter what you wish the certificate to say later on. If asked for passwords, make sure they are secure, and don&#x27;t forget them - specially when it comes to the CA private key password, since you&#x27;ll need that to sign new certificates!</p>
+<p>First - generate a Certificate Authority. This is defined by a public&#x2F;private keypair and a x509 certificate.</p>
+<pre><code>openssl genrsa -des3 -out ca.key 4096
+openssl req -new -x509 -days 3650 -key ca.key -out ca.crt</code></pre>
+<p>I chose 10 years validity - you may be interested in less, but that&#x27;s on you. 4096 bits should be standard for new RSA keypairs. Next, we generate a keypair for the new user.</p>
+<pre><code>openssl genrsa -des3 -out USERNAME.key 4096</code></pre>
+<p>Following that, we generate a Certificate Signing Request (CSR).</p>
+<pre><code>openssl req -new -key USERNAME.key -out USERNAME.csr</code></pre>
+<p>Almost done - we now sign this CSR with the CA key you generated earlier.</p>
+<pre><code>openssl x509 -req -days 1000 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt</code></pre>
+<p>Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(</p>
+<p>Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for easy import.</p>
+<pre><code>openssl pkcs12 -export -out USERNAME.pfx -inkey USERNAME.key -in USERNAME.crt -certfile ca.crt</code></pre>
+<p>Now, you have a .pfx file and a ca.crt. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever <code>server</code> block you require the client to be certificate authenticated:</p>
+<pre><code>ssl_client_certificate &#x2F;path&#x2F;to&#x2F;ca.crt;
+ssl_verify_client optional;</code></pre>
+<p>Then, within a <code>location</code> block, add the following conditional:</p>
+<pre><code>if ($ssl_client_verify != SUCCESS) {
+    return 403;
+}</code></pre>
+<p>That&#x27;s it - now you have one more barrier in place to protect services from outside access.</p>
+<p>To make this a bit easier for you, here is a bash script. It expects a username and an optional parameter for the number of days the pfx shall be valid for. Default is one year. It makes no attempt to check edge cases though, such as if your CA cert is still valid or if the requested days are realistic.</p>
+<pre><code>#!&#x2F;bin&#x2F;bash</code></pre>
+<pre><code>echo &quot;CA&#x2F;user certificate generation script&quot;</code></pre>
+<pre><code># generate new CA keys and cert if they don&#x27;t exist yet
+if [ -f &quot;ca.key&quot; ] ; then
+        echo &quot;CA cert and keys found, using these for CSR&quot;
+else
+        echo &quot;Generating new CA private keys and certificate...&quot;
+        openssl genrsa -des3 -out ca.key 4096
+        openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+fi</code></pre>
+<pre><code>if [ -z $2 ] ; then
+        userdaysvalid=365
+else
+        userdaysvalid=$2
+fi</code></pre>
+<pre><code>username=$1
+if [ -z $username ] ; then
+        echo &quot;Script expects a single username string as argument! Exiting.&quot;
+        exit;
+else
+        echo &quot;Generating pfx for username $username, valid for $userdaysvalid days.&quot;
+        echo &quot;Generating key...&quot;
+        openssl genrsa -des3 -out $username.key 4096
+        echo &quot;Generating CSR...&quot;
+        openssl req -new -key $username.key -out $username.csr
+        echo &quot;Signing the generated CSR...&quot;
+        openssl x509 -req -days $userdaysvalid -in $username.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out $username.crt
+        echo &quot;Generating pfx for import...&quot;
+        openssl pkcs12 -export -out $username.pfx -inkey $username.key -in $username.crt -certfile ca.crt
+        echo &quot;Done! You can now import $username.pfx into your cert store. You&#x27;ll need ca.crt on the server side.&quot;
+fi</code></pre>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2022-02-06 11:55:38. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+    </div>
+
+</body>
+
+</html>

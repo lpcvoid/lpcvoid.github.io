@@ -1,0 +1,89 @@
+TITLE: Creating a private CA and enforcing client certificates
+DATE: 2022-02-06
+TAGS: selfhost PKI certificates security
+-------------------------
+
+I run a lot of services on my home server for friends and family. These services need to be authenticated, which is done via username/password mainly. Due to some poeple not knowing much about technology, I need to expose some of it to the internet (in contrast to being behind a Wireguard VPN). I do this via nginx, which I use as a reverse proxy in order to ease up certificate management. 
+
+In addition to usernames and passwords, all users require client certificate authentication. This means that their browser must send a certificate when connecting and establishing a TLS session. That looks like this, on Firefox/Ubuntu:
+
+![User identification request under Firefox/Ubuntu](https://lpcvoid.com/img/cert_user_id_request.png)
+
+
+If they miss this certificate, their request does not even hit the backend, and instead a 403 error is sent. This allows an additional barrier, as people without this certificate can't even attempt to exploit weaknesses in the services being run. Another nice advantage is that this makes username/password leaks a lot less an issue, since there is not even a way to use stolen credentials without also stealing the certificate. Fortunately, on modern devices such as phones these certificates are stored in a secure hardware enclave, and are incredibly hard to extract, if even at all possible. Certainly not in the realm of a non-state actor. On desktop OSes, the certificates are easier to extract, but that's unfortunately not easily solvable short of a USB or smart card enclave.
+
+Anyhow, in case you're interested in doing the same, the process is pretty simple. The following outlines the process. OpenSSL will ask you some details, just enter what you wish the certificate to say later on. If asked for passwords, make sure they are secure, and don't forget them - specially when it comes to the CA private key password, since you'll need that to sign new certificates!
+
+First - generate a Certificate Authority. This is defined by a public/private keypair and a x509 certificate.
+
+    openssl genrsa -des3 -out ca.key 4096
+    openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+
+I chose 10 years validity - you may be interested in less, but that's on you. 4096 bits should be standard for new RSA keypairs. Next, we generate a keypair for the new user.
+
+    openssl genrsa -des3 -out USERNAME.key 4096
+
+Following that, we generate a Certificate Signing Request (CSR).
+
+    openssl req -new -key USERNAME.key -out USERNAME.csr
+
+Almost done - we now sign this CSR with the CA key you generated earlier.
+
+    openssl x509 -req -days 1000 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt
+
+Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(
+
+Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for easy import.
+
+    openssl pkcs12 -export -out USERNAME.pfx -inkey USERNAME.key -in USERNAME.crt -certfile ca.crt
+
+Now, you have a .pfx file and a ca.crt. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever `server` block you require the client to be certificate authenticated:
+
+    ssl_client_certificate /path/to/ca.crt;
+    ssl_verify_client optional;
+
+Then, within a `location` block, add the following conditional:
+
+    if ($ssl_client_verify != SUCCESS) {
+        return 403;
+    }
+
+That's it - now you have one more barrier in place to protect services from outside access.
+
+To make this a bit easier for you, here is a bash script. It expects a username and an optional parameter for the number of days the pfx shall be valid for. Default is one year. It makes no attempt to check edge cases though, such as if your CA cert is still valid or if the requested days are realistic.
+
+    #!/bin/bash
+
+    echo "CA/user certificate generation script"
+
+    # generate new CA keys and cert if they don't exist yet
+    if [ -f "ca.key" ] ; then
+            echo "CA cert and keys found, using these for CSR"
+    else
+            echo "Generating new CA private keys and certificate..."
+            openssl genrsa -des3 -out ca.key 4096
+            openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+    fi
+
+    if [ -z $2 ] ; then
+            userdaysvalid=365
+    else
+            userdaysvalid=$2
+    fi
+
+    username=$1
+    if [ -z $username ] ; then
+            echo "Script expects a single username string as argument! Exiting."
+            exit;
+    else
+            echo "Generating pfx for username $username, valid for $userdaysvalid days."
+            echo "Generating key..."
+            openssl genrsa -des3 -out $username.key 4096
+            echo "Generating CSR..."
+            openssl req -new -key $username.key -out $username.csr
+            echo "Signing the generated CSR..."
+            openssl x509 -req -days $userdaysvalid -in $username.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out $username.crt
+            echo "Generating pfx for import..."
+            openssl pkcs12 -export -out $username.pfx -inkey $username.key -in $username.crt -certfile ca.crt
+            echo "Done! You can now import $username.pfx into your cert store. You'll need ca.crt on the server side."
+    fi
