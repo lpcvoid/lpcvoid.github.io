@@ -62,7 +62,7 @@ openssl req -new -x509 -days 3650 -key ca.key -out ca.crt</code></pre>
 <pre><code>openssl req -new -key USERNAME.key -out USERNAME.csr</code></pre>
 <p>Almost done - we now sign this CSR with the CA key you generated earlier.</p>
 <pre><code>openssl x509 -req -days 1000 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt</code></pre>
-<p>Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(</p>
+<p>Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(. Also - the serial should be incremented each time you sign a new CSR.</p>
 <p>Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for easy import.</p>
 <pre><code>openssl pkcs12 -export -out USERNAME.pfx -inkey USERNAME.key -in USERNAME.crt -certfile ca.crt</code></pre>
 <p>Now, you have a .pfx file and a ca.crt. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever <code>server</code> block you require the client to be certificate authenticated:</p>
@@ -112,7 +112,7 @@ fi</code></pre>
         </div>
         
 
-        <div class="generationmsg">Site generated on 2022-02-06 11:55:38. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="generationmsg">Site generated on 2022-02-06 11:58:54. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
     </div>
 
 </body>

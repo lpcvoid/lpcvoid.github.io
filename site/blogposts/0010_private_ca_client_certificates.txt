@@ -31,7 +31,7 @@ Almost done - we now sign this CSR with the CA key you generated earlier.
 
     openssl x509 -req -days 1000 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt
 
-Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(
+Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(. Also - the serial should be incremented each time you sign a new CSR.
 
 Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for easy import.
 
