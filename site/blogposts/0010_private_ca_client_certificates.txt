@@ -19,7 +19,7 @@ First - generate a Certificate Authority. This is defined by a public/private ke
     openssl genrsa -des3 -out ca.key 4096
     openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
 
-I chose 10 years validity - you may be interested in less, but that's on you. 4096 bits should be standard for new RSA keypairs. Next, we generate a keypair for the new user.
+I chose 10 years validity - you may be interested in less, but that's up to you. 4096 bits should be standard for new RSA keypairs. Next, we generate a keypair for the new user.
 
     openssl genrsa -des3 -out USERNAME.key 4096
 
@@ -29,7 +29,7 @@ Following that, we generate a Certificate Signing Request (CSR).
 
 Almost done - we now sign this CSR with the CA key you generated earlier.
 
-    openssl x509 -req -days 1000 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt
+    openssl x509 -req -days 1460 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt
 
 Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(. Also - the serial should be incremented each time you sign a new CSR.
 
@@ -37,7 +37,7 @@ Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for e
 
     openssl pkcs12 -export -out USERNAME.pfx -inkey USERNAME.key -in USERNAME.crt -certfile ca.crt
 
-Now, you have a .pfx file and a ca.crt. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever `server` block you require the client to be certificate authenticated:
+Now, you have both *.pfx and a ca.crt files. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever `server` block you require the client to be certificate authenticated:
 
     ssl_client_certificate /path/to/ca.crt;
     ssl_verify_client optional;
