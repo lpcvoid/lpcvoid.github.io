@@ -1,0 +1,82 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - Frustration with security-focused applications not supporting TLS client certificates</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication? It seems to work well (or this site is not indexed anywhere, I have no analytics so I would not know). 
+                In any case, spam deserves to die a cold and lonely death if you ask me. -->
+
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/4AYFD3FE">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">Frustration with security-focused applications not supporting TLS client certificates</h3>
+              <h4 class="float-right">Published on: 2022-07-17</h4>
+            </div>
+            <div>
+                <p>Been a few days since my last post, and what better way to scream into the void than by ranting?</p>
+<p>I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as anybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can&#x27;t exploit what you can&#x27;t reach in the first place.</p>
+<p>So, how&#x27;s the support for client certificates these days?</p>
+<h3 id="homeassistant">Homeassistant</h3>
+<p>There are multiple reasons why I don&#x27;t use Homeassistant. One is the absolute tone-deaf stance that they have on client certificates. Case in point:</p>
+<p><a href="https://github.com/home-assistant/android/issues/442">Github: Feature request: Support for Client Certificate Authentication</a></p>
+<p>From <code>robbiet480</code>, who is &quot;Head of Infrastructure&quot;:</p>
+<blockquote><p>Client certificates are currently not supported and we have no plans to implement such a feature as it has been deemed too complex and we are too early in the apps life to get there. Would rather be spending time on implementing features that provide value to all users, like better notifications and more sensors.</p>
+</blockquote>
+<p>This is just absolutely mind-boggling to me. It made me delete my Homeassistant instance. By the way - OpenHab has native support for client certificates in their official app :).</p>
+<h3 id="vaultwarden">Vaultwarden</h3>
+<p>I had a really hard time convincing myself to try network enabled password managers. For the last 12 or so years, I used KeePass, which is completely local. I synced my password database to my phone every few months. It works, but is inconvenient - and much worse, doesn&#x27;t scale for multiple people in your household. So I decided to try and host Vaultwarden, which is a Rust implementation of the Bitwarden server. The official Bitwarden server requires MSSQL of all things unholy, while Vaultwarden uses the perhaps best software ever written, SQLite.</p>
+<p>Anyhow, you&#x27;d think such critical infrastructure as a password manager would support client certificate authentication within their official Android app? No :)</p>
+<p>https:&#x2F;&#x2F;github.com&#x2F;bitwarden&#x2F;mobile&#x2F;issues&#x2F;582</p>
+<p>At least this thread is full of constructive people, in stark contrast to the responses we got from Homeassistant devs.</p>
+<h4 id="end-of-rant">End of rant</h4>
+<p>Don&#x27;t get me wrong here - I am grateful for the countless hours that millions of people pour into their open source projects for often not a dime of compensation. I just feel that we should handle security topics with higher priority, specially when your application domain is so critical.</p>
+<p>If anybody is still reading, and in the process of building a mobile application that can potentially be used to connect to selfhostable HTTP backends, please add support for client certificates. The advent of hardware-backed keystores such as the <a href="https://safety.google/intl/en_us/pixel/">Google Titan HSM</a>, paired with new APIs like the <a href="https://developer.android.com/training/articles/keystore">Android Keystore</a> enables a new level of security within this space that your users will thank you for (the most important IMO being key extraction prevention). Don&#x27;t take my word for it, there are many threads about this topic for a lot of projects.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2022-07-17 08:54:34. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+    </div>
+
+</body>
+
+</html>
