@@ -8,7 +8,7 @@
 
 .center {
     width: 75%;
-    padding: 20px;
+    padding: 10px;
     font-family: Consolas,Monospace,Courier;  
     margin: auto;
 }
@@ -26,6 +26,14 @@
 
 .menu {
     margin: 20px;
+}
+
+.ukraine-first {
+    color: #0057B8;
+}
+
+.ukraine-last {
+    color: #FFD700;
 }
 
 .content {
