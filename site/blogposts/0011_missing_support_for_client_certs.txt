@@ -5,7 +5,7 @@ TAGS: selfhost PKI certificates security
 
 Been a few days since my last post, and what better way to scream into the void than by ranting?
 
-I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as anybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can't exploit what you can't reach in the first place.
+I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as everybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can't exploit what you can't reach in the first place.
 
 So, how's the support for client certificates these days?
 
@@ -27,7 +27,7 @@ I had a really hard time convincing myself to try network enabled password manag
 
 Anyhow, you'd think such critical infrastructure as a password manager would support client certificate authentication within their official Android app? No :)
 
-https://github.com/bitwarden/mobile/issues/582
+[Github: Connecting to a server with TLS Client Authentication crashes app](https://github.com/bitwarden/mobile/issues/582)
 
 At least this thread is full of constructive people, in stark contrast to the responses we got from Homeassistant devs.
 

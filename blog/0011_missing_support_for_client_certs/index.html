@@ -49,7 +49,7 @@
             </div>
             <div>
                 <p>Been a few days since my last post, and what better way to scream into the void than by ranting?</p>
-<p>I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as anybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can&#x27;t exploit what you can&#x27;t reach in the first place.</p>
+<p>I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as everybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can&#x27;t exploit what you can&#x27;t reach in the first place.</p>
 <p>So, how&#x27;s the support for client certificates these days?</p>
 <h3 id="homeassistant">Homeassistant</h3>
 <p>There are multiple reasons why I don&#x27;t use Homeassistant. One is the absolute tone-deaf stance that they have on client certificates. Case in point:</p>
@@ -61,7 +61,7 @@
 <h3 id="vaultwarden">Vaultwarden</h3>
 <p>I had a really hard time convincing myself to try network enabled password managers. For the last 12 or so years, I used KeePass, which is completely local. I synced my password database to my phone every few months. It works, but is inconvenient - and much worse, doesn&#x27;t scale for multiple people in your household. So I decided to try and host Vaultwarden, which is a Rust implementation of the Bitwarden server. The official Bitwarden server requires MSSQL of all things unholy, while Vaultwarden uses the perhaps best software ever written, SQLite.</p>
 <p>Anyhow, you&#x27;d think such critical infrastructure as a password manager would support client certificate authentication within their official Android app? No :)</p>
-<p>https:&#x2F;&#x2F;github.com&#x2F;bitwarden&#x2F;mobile&#x2F;issues&#x2F;582</p>
+<p><a href="https://github.com/bitwarden/mobile/issues/582">Github: Connecting to a server with TLS Client Authentication crashes app</a></p>
 <p>At least this thread is full of constructive people, in stark contrast to the responses we got from Homeassistant devs.</p>
 <h4 id="end-of-rant">End of rant</h4>
 <p>Don&#x27;t get me wrong here - I am grateful for the countless hours that millions of people pour into their open source projects for often not a dime of compensation. I just feel that we should handle security topics with higher priority, specially when your application domain is so critical.</p>
@@ -73,7 +73,7 @@
         </div>
         
 
-        <div class="generationmsg">Site generated on 2022-07-17 09:31:59. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="generationmsg">Site generated on 2022-07-17 09:37:00. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
     </div>
 
 </body>
