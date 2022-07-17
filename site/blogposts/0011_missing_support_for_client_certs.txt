@@ -15,7 +15,7 @@ There are multiple reasons why I don't use Homeassistant. One is the absolute to
 
 [Github: Feature request: Support for Client Certificate Authentication](https://github.com/home-assistant/android/issues/442)
 
-From `robbiet480`, who is "Head of Infrastructure":
+From `robbiet480`, who is "Mobile lead":
 
 > Client certificates are currently not supported and we have no plans to implement such a feature as it has been deemed too complex and we are too early in the apps life to get there. Would rather be spending time on implementing features that provide value to all users, like better notifications and more sensors.
 
