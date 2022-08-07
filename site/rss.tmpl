@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+  <title>{{ SITE_TITLE }}</title>
+  <link>https://Lpcvoid.com/blog/</link>
+  <description>My blog about computers</description>
+  <lastBuildDate>{{ DATE_FIRST_FORMATTED }}</lastBuildDate>
+  <language>en-us</language>
+  {% block listing %}
+  <item>
+    <title>{{ TITLE }}</title>
+    <link>{{ BASE_DOMAIN }}{{ BASE_URL }}/blog/{{ FILENAME }}</link>
+    <description><![CDATA[{{ CONTENT }}]]></description>
+  </item>
+  {% endblock %}
+</channel>
+
+</rss>

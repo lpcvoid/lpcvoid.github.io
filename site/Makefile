@@ -28,6 +28,7 @@ BLOGC_COMMAND = \
 	
 all: \
 	$(OUTPUT_DIR)/index.html \
+	$(OUTPUT_DIR)/rss \
 	$(OUTPUT_DIR)/blog/index.html \
 	$(addprefix $(OUTPUT_DIR)/blog/, $(addsuffix /index.html, $(POSTS)))
 
@@ -40,6 +41,15 @@ $(OUTPUT_DIR)/index.html: $(POSTS_LIST) index.tmpl Makefile
 		-l \
 		-o $@ \
 		-t index.tmpl \
+		$(POSTS_LIST)
+
+$(OUTPUT_DIR)/rss: $(POSTS_LIST) rss.tmpl Makefile
+	$(BLOGC_COMMAND) \
+		-D DATE_FORMAT=$(DATE_FORMAT) \
+		-D IS_BLOG_POST_LIST=1 \
+		-l \
+		-o $@ \
+		-t rss.tmpl \
 		$(POSTS_LIST)
 
 $(OUTPUT_DIR)/blog/index.html: $(POSTS_LIST) index.tmpl Makefile

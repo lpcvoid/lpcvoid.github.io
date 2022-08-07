@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+  <title>lpcvoid's homepage</title>
+  <link>https://Lpcvoid.com/blog/</link>
+  <description>My blog about computers</description>
+  <lastBuildDate>2022-07-17</lastBuildDate>
+  <language>en-us</language>
+  
+  <item>
+    <title>Frustration with security-focused applications not supporting TLS client certificates</title>
+    <link>https://lpcvoid.com/blog/0011_missing_support_for_client_certs</link>
+    <description><![CDATA[<p>Been a few days since my last post, and what better way to scream into the void than by ranting?</p>
+<p>I host quite a lot of services for friends and myself as a hobby. These services range from media streaming over wiki instances to smart home stuff. I am very security conscious about this, as everybody should be. One building block of this is that (almost) all services I run are client certificate authenticated, using nginx as a reverse proxy. This stops certain classes of vulnerabilities, such as zero-day exploits, since you can&#x27;t exploit what you can&#x27;t reach in the first place.</p>
+<p>So, how&#x27;s the support for client certificates these days?</p>
+<h3 id="homeassistant">Homeassistant</h3>
+<p>There are multiple reasons why I don&#x27;t use Homeassistant. One is the absolute tone-deaf stance that they have on client certificates. Case in point:</p>
+<p><a href="https://github.com/home-assistant/android/issues/442">Github: Feature request: Support for Client Certificate Authentication</a></p>
+<p>From <code>robbiet480</code>, who is &quot;Mobile lead&quot;:</p>
+<blockquote><p>Client certificates are currently not supported and we have no plans to implement such a feature as it has been deemed too complex and we are too early in the apps life to get there. Would rather be spending time on implementing features that provide value to all users, like better notifications and more sensors.</p>
+</blockquote>
+<p>This is just absolutely mind-boggling to me. It made me delete my Homeassistant instance. By the way - OpenHab has native support for client certificates in their official app :).</p>
+<h3 id="vaultwarden">Vaultwarden</h3>
+<p>I had a really hard time convincing myself to try network enabled password managers. For the last 12 or so years, I used KeePass, which is completely local. I synced my password database to my phone every few months. It works, but is inconvenient - and much worse, doesn&#x27;t scale for multiple people in your household. So I decided to try and host Vaultwarden, which is a Rust implementation of the Bitwarden server. The official Bitwarden server requires MSSQL of all things unholy, while Vaultwarden uses the perhaps best software ever written, SQLite.</p>
+<p>Anyhow, you&#x27;d think such critical infrastructure as a password manager would support client certificate authentication within their official Android app? No :)</p>
+<p><a href="https://github.com/bitwarden/mobile/issues/582">Github: Connecting to a server with TLS Client Authentication crashes app</a></p>
+<p>At least this thread is full of constructive people, in stark contrast to the responses we got from Homeassistant devs.</p>
+<h4 id="end-of-rant">End of rant</h4>
+<p>Don&#x27;t get me wrong here - I am grateful for the countless hours that millions of people pour into their open source projects for often not a dime of compensation. I just feel that we should handle security topics with higher priority, specially when your application domain is so critical.</p>
+<p>If anybody is still reading, and in the process of building a mobile application that can potentially be used to connect to selfhostable HTTP backends, please add support for client certificates. The advent of hardware-backed keystores such as the <a href="https://safety.google/intl/en_us/pixel/">Google Titan HSM</a>, paired with new APIs like the <a href="https://developer.android.com/training/articles/keystore">Android Keystore</a> enables a new level of security within this space that your users will thank you for (the most important IMO being key extraction prevention). Don&#x27;t take my word for it, there are many threads about this topic for a lot of projects.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Creating a private CA and enforcing client certificates</title>
+    <link>https://lpcvoid.com/blog/0010_private_ca_client_certificates</link>
+    <description><![CDATA[<p>I run a lot of services on my home server for friends and family. These services need to be authenticated, which is done via username&#x2F;password mainly. Due to some poeple not knowing much about technology, I need to expose some of it to the internet (in contrast to being behind a Wireguard VPN). I do this via nginx, which I use as a reverse proxy in order to ease up certificate management. </p>
+<p>In addition to usernames and passwords, all users require client certificate authentication. This means that their browser must send a certificate when connecting and establishing a TLS session. That looks like this, on Firefox&#x2F;Ubuntu:</p>
+<p><img src="https://lpcvoid.com/img/cert_user_id_request.png" alt="User identification request under Firefox/Ubuntu"></p>
+<p>If they miss this certificate, their request does not even hit the backend, and instead a 403 error is sent. This allows an additional barrier, as people without this certificate can&#x27;t even attempt to exploit weaknesses in the services being run. Another nice advantage is that this makes username&#x2F;password leaks a lot less an issue, since there is not even a way to use stolen credentials without also stealing the certificate. Fortunately, on modern devices such as phones these certificates are stored in a secure hardware enclave, and are incredibly hard to extract, if even at all possible. Certainly not in the realm of a non-state actor. On desktop OSes, the certificates are easier to extract, but that&#x27;s unfortunately not easily solvable short of a USB or smart card enclave.</p>
+<p>Anyhow, in case you&#x27;re interested in doing the same, the process is pretty simple. The following outlines the process. OpenSSL will ask you some details, just enter what you wish the certificate to say later on. If asked for passwords, make sure they are secure, and don&#x27;t forget them - specially when it comes to the CA private key password, since you&#x27;ll need that to sign new certificates!</p>
+<p>First - generate a Certificate Authority. This is defined by a public&#x2F;private keypair and a x509 certificate.</p>
+<pre><code>openssl genrsa -des3 -out ca.key 4096
+openssl req -new -x509 -days 3650 -key ca.key -out ca.crt</code></pre>
+<p>I chose 10 years validity - you may be interested in less, but that&#x27;s up to you. 4096 bits should be standard for new RSA keypairs. Next, we generate a keypair for the new user.</p>
+<pre><code>openssl genrsa -des3 -out USERNAME.key 4096</code></pre>
+<p>Following that, we generate a Certificate Signing Request (CSR).</p>
+<pre><code>openssl req -new -key USERNAME.key -out USERNAME.csr</code></pre>
+<p>Almost done - we now sign this CSR with the CA key you generated earlier.</p>
+<pre><code>openssl x509 -req -days 1460 -in USERNAME.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out USERNAME.crt</code></pre>
+<p>Here, I chose four years, so 1460 days. This is round about the lifetime that most of my users keep personal devices for, such as phones. We are a wasteful civilization :(. Also - the serial should be incremented each time you sign a new CSR.</p>
+<p>Finally - bundle the signed certificate and keypair into a PKCS12 pfx file for easy import.</p>
+<pre><code>openssl pkcs12 -export -out USERNAME.pfx -inkey USERNAME.key -in USERNAME.crt -certfile ca.crt</code></pre>
+<p>Now, you have both *.pfx and a ca.crt files. The pfx can be imported into a browser or a phone. The ca.crt on the other hand gets used by your webserver. As I said, I use nginx - so we need to configure it properly. You just need to add the following to whatever <code>server</code> block you require the client to be certificate authenticated:</p>
+<pre><code>ssl_client_certificate &#x2F;path&#x2F;to&#x2F;ca.crt;
+ssl_verify_client optional;</code></pre>
+<p>Then, within a <code>location</code> block, add the following conditional:</p>
+<pre><code>if ($ssl_client_verify != SUCCESS) {
+    return 403;
+}</code></pre>
+<p>That&#x27;s it - now you have one more barrier in place to protect services from outside access.</p>
+<p>To make this a bit easier for you, here is a bash script. It expects a username and an optional parameter for the number of days the pfx shall be valid for. Default is one year. It makes no attempt to check edge cases though, such as if your CA cert is still valid or if the requested days are realistic.</p>
+<pre><code>#!&#x2F;bin&#x2F;bash</code></pre>
+<pre><code>echo &quot;CA&#x2F;user certificate generation script&quot;</code></pre>
+<pre><code># generate new CA keys and cert if they don&#x27;t exist yet
+if [ -f &quot;ca.key&quot; ] ; then
+        echo &quot;CA cert and keys found, using these for CSR&quot;
+else
+        echo &quot;Generating new CA private keys and certificate...&quot;
+        openssl genrsa -des3 -out ca.key 4096
+        openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+fi</code></pre>
+<pre><code>if [ -z $2 ] ; then
+        userdaysvalid=365
+else
+        userdaysvalid=$2
+fi</code></pre>
+<pre><code>username=$1
+if [ -z $username ] ; then
+        echo &quot;Script expects a single username string as argument! Exiting.&quot;
+        exit;
+else
+        echo &quot;Generating pfx for username $username, valid for $userdaysvalid days.&quot;
+        echo &quot;Generating key...&quot;
+        openssl genrsa -des3 -out $username.key 4096
+        echo &quot;Generating CSR...&quot;
+        openssl req -new -key $username.key -out $username.csr
+        echo &quot;Signing the generated CSR...&quot;
+        openssl x509 -req -days $userdaysvalid -in $username.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out $username.crt
+        echo &quot;Generating pfx for import...&quot;
+        openssl pkcs12 -export -out $username.pfx -inkey $username.key -in $username.crt -certfile ca.crt
+        echo &quot;Done! You can now import $username.pfx into your cert store. You&#x27;ll need ca.crt on the server side.&quot;
+fi</code></pre>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Sensible connected home</title>
+    <link>https://lpcvoid.com/blog/0009_sensible_connected_home</link>
+    <description><![CDATA[<p>Wew lads, it&#x27;s been a while since my last post on here. I have been meaning to write more, and this post is a result of a new strategy - whenever I research a new topic, I&#x27;ll try to document that and post the results here.</p>
+<p>So, I wish to dive into the world of home automation. I wish to avoid the buzzword &quot;smart&quot; as much as possible, so I will refer to it as &quot;connected home&quot; instead. Soon, I will be moving into my first house, and so I set off to research. This post will be updated over the course of the next few weeks, as I get my research&#x2F;prototyping done.</p>
+<p>There are a few points which are very important to me:</p>
+<ul>
+<li>I want to be able to see the current electrical load in Watts on certain wall sockets, and ideally also control their state.</li>
+<li>Analog to the sockets, I want to be able to see and control light state.</li>
+<li>It would be very cool to see which windows are open.</li>
+<li>I have not, do not and will never like the cloud. Whatever I do, I want it locally in my LAN and 100% under my control. No outside communication unless I make it so.</li>
+<li>I want to use only open source components. If I have to crack open some commercial device to reflash firmware via test points, that&#x27;s fine too.</li>
+<li>I have no bus such as KNX built into my house. I would vastly perfer a bus to any RF technology, but I am not sure I can retrofit it easily. I do have empty tubing in the walls though (one per room, down the the power box). If anybody wants to chat about this, shoot me an email!</li>
+</ul>
+<p>There seem to be three basic categories that you can buy into: <a href="https://en.wikipedia.org/wiki/Zigbee">Zigbee</a>, <a href="https://en.wikipedia.org/wiki/Z-Wave">Z-Wave</a> and WLAN. TL;DR, I chose Z-Wave, and the following is my reasoning.</p>
+<p><strong>WLAN</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>you probably already have one</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>fast, which is useless for sensors since they only send small data amounts</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>mostly proprietary, sometimes you can flash your own firmware</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>very energy hungry</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>many small IP routable devices in your home sounds bad</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>2.4 GHz congestion is bad</td>
+        </tr>
+    </tbody>
+</table>
+<p>This seems like the worst, so I&#x27;ll get it out of the way first. There are absolute shitloads of &quot;smart&quot; devices that implement connectivity using off-the-shelf chips such as ESP-8266 or <a href="https://developer.tuya.com/en/docs/iot/tuya-sandwich-wifi-and-ble-soc-board-BK7231N?id=Kao72e6net3bs">BK7231N</a>. They all have in common that they will happily connect to your WLAN and phone home into the cloud. The allure of these is that even people with absolutely no technical abilities can use them. The downside is... everything else. They are privacy invasive, energy hungry and not under your control. Sometimes, you can flash open source firmware on them (see <a href="https://github.com/ct-Open-Source/tuya-convert">here</a> as an example for a broad range of devices based off ESP-8266 and derivates), but this will still not solve another hard problem:  use a dozen of these devices and you&#x27;ll rapidly congest your 2.4GHz band. You (and your neighbors) won&#x27;t like that. Finally, WLAN is energy hungry and it&#x27;s not feasable to deploy small battery powered sensors, such as temperature or water sensors, that can run for years on a battery. So WLAN is out of the race.</p>
+<p><strong>Zigbee</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>cheap</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>widespread</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>low energy</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>walled gardens by many different manufacturers, no guarantee that devices are compatible</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>based on 2.4GHz</td>
+        </tr>
+    </tbody>
+</table>
+<p>Zigbee is a step into the right direction. It&#x27;s a non-IP low energy protocol unfortunately based on ISM radio bands, which is 2.4GHz in most of the world. Its layers are defined in <a href="https://en.wikipedia.org/wiki/IEEE_802.15.4">IEEE 802.15.4</a>. It&#x27;s a mesh net, meaning that each mesh member uses other members to reach the gateway, which is the root of the mesh network and actually communicates with the outside. Zigbee devices on their own never communicate directly with any device outside of their mesh. There are many different (often proprietary) gateways, but of course we want the open source solutions. Fortunately, there are cheap USB dongles which work just fine and can work with a wide variety of devices. Zigbee is incredibly cheap, very widespread, and free for anybody to implement. Unfortunately, this also leads to large discrepancies in manufacturers and their implementation. Zigbee provides a means to transport data, and nothing else. The application layer is defined by the manufacturer, which implies a lot of walled gardens. In essence, any Zigbee network by a manufacturer will be exclusive to that one manufacturer. It gets more extreme when people buy into multiple manufacturers, and have multiple mesh networks at the same time, further congesting the 2.4 GHz band. The gateways have to do the heavy lifting here and speak many different protocols for each company&#x27;s devices, in order to expose them in a consistent manner to the gateway host. One product that claims to be able to do this is the Conbee II gateway, and I have ordered one to test.</p>
+<p><strong>Z-Wave</strong></p>
+<table>
+    <tbody>
+        <tr>
+            <td>+</td>
+            <td>widespread, but less so than Zigbee</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>very reliable due to mandatory certification and testing</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>low energy</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>certification includes security testing</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>runs on 868MHz in Europe</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>standard opened up recently, but too soon to see if that helps with adoption</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>around double/triple as expensive as Zigbee devices, but still okay-ish</td>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>could potentially be deplaced at some point due to large companies flocking to Zigbee</td>
+        </tr>
+    </tbody>
+</table>
+<p>Z-Wave is, like Zigbee, also a mesh network which is composed of a bunch of clients (the sensors&#x2F;actors and whatnot) and a gateway. Z-Wave is a proprietary standard and defined by Sigma Designs, which was then bought by Silicon Labs. In fact, it has quite a convoluted history, starting out as technology using an unlicenced frequency band in 1999. It really was the wild west back then it seems :). From an &quot;how open is the system?&quot; standpoint, it&#x27;s unfortunate that Z-Wave only has a single vendor producing chips, even though this <a href="https://z-wavealliance.org/z-wave-specification-press-release/">could change soon</a>. It feels like vendor lockin, but maybe i&#x27;m wrong here and rigirous standardization and gatekeeping makes sense from a product perspective. In order to be granted a licence to use Z-Wave, products have to undergo large amounts of certification for interoperability. The upside is that it&#x27;s supposedly guaranteed that devices will be interoperable with each other and with whatever gateway you want to operate. This is a sore point to me though, and I only accept it at all because I control the gateway and can verify nothing leaves my local mesh into the direction of the internet. Also - only the certification process is the proprietary part, most of the specifiation is <a href="https://www.embeddedcomputing.com/application/consumer/smart-home-tech/z-wave-opens-up-as-smart-home-connectivity-battle-closes-in">open</a> it seems.</p>
+<p>Anyhow, the biggest advantage in my opinion is that it uses a 868 MHz frequency in Europe where I live, so no fighting with my computers over frequencies. The maximum device count for Z-Wave is 232, and this could be seen as a drawback, but I actually doubt I&#x27;ll ever exceed even 50 devices. And maybe the limit is even good - Z-Wave imposes some limitations, such as hop count to gateway (4 hops maximum, Zigbee does not impose limits here, which could lead to a large RTT). A downside is the increased price - due to certification, manufacturers can&#x27;t outprice Zigbee devices. This may hurt if you plan on using many sensors&#x2F;actors.</p>
+<p><strong>Z-Wave setup</strong></p>
+<p>I went with an Aeotec Z-Stick Gen5 as a gateway, and using <a href="https://github.com/domoticz/domoticz">Domoticz</a> on my little x86_64 server that&#x27;s sitting in my pantry, running in a Docker container. Still waiting for sensors to arrive for preliminary testing.</p>
+<p>...to be continued...</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Dejunking and reconstructing bytecode</title>
+    <link>https://lpcvoid.com/blog/0008_python_bytecode_dejunking</link>
+    <description><![CDATA[<p>In my last blog post, <a href="https://lpcvoid.com/blog/0007_wows_python_reversing/index.html">here</a>, I figured that the Python bytecode could be obfuscated somewhat. Turns out it is, and this post will be a run down of my findings and the problems I encountered. It is a work in progress, so there could be updates at some point. I&#x27;ll change the title in that case.</p>
+<p>This post concerns the obsolete 2.7 version of Python, since that&#x27;s what the target application embeds.</p>
+<p>Python bytecode is pretty simple. You have one byte of opcode, followed by two optional bytes of <strong>argument</strong> (that&#x27;s what cPython, the reference implementation, calls it). A list of opcodes is contained in opcode.h. Opcodes that are smaller than 90 do not expect any argument, and are thus only one byte in size.</p>
+<p>There exist disassemblers and even decompilers for this bytecode, and they work well for standard bytecode that was not messed with. The one I am looking at has two obfusications (that I am aware of at this point) though. Let&#x27;s look at them.</p>
+<h4 id="insertion-of-junk-instructions-to-confuse-disassemblers">Insertion of junk instructions to confuse disassemblers</h4>
+<p>Normally, a disassembler would look at a set of instructions and decode them into some sort of text representation sequentially. For example, take the following bytecode:</p>
+<pre><code>6401006400006c00007d0000</code></pre>
+<p>This decodes to:</p>
+<pre><code>LOAD_CONST      1 (-1)
+LOAD_CONST      0 (None)
+IMPORT_NAME     0 (sys)
+STORE_FAST      0 (sys)</code></pre>
+<p>Which is simple enough. The disassembler relies on the bytecode being correct though for a number of factors. For one, it decides how many bytes of argument to read by looking at the integer value of the opcode. If it&#x27;s under 90, it treats the bytes after the opcode as a new opcode and not as argument data. This means that it&#x27;s possible to write a program that can stop disassemblers by taking bytecode, inserting junk instructions or random bytes into it at some place, and then recalculate jumps and branches to account for this. The VM does not care much when executing this manipulated bytecode, as long as the obfuscator took care to direct it around the junk using jumps or other means of control flow. But a disassembler that reads code top down without dynamic analysis will run into these junk areas and produce completely wrong output, or even crash.</p>
+<p>So, what can we do against this? I decided to write a small program which takes bytecode and recursively traces it, running along all branches and marking code paths which can actually be executed. This is easy because there aren&#x27;t that many branching opcodes. In fact, these are the ones I identified:</p>
+<pre><code>JUMP_FORWARD            110
+JUMP_IF_FALSE_OR_POP    111
+JUMP_IF_TRUE_OR_POP     112
+JUMP_ABSOLUTE           113
+POP_JUMP_IF_FALSE       114
+POP_JUMP_IF_TRUE        115
+FOR_ITER                93</code></pre>
+<p>All non executed areas of code then get a <em>nop</em> (0x9), so the disassembler does not stumble over junk bytes anymore. This is simple, but actually does not solve another problem: What happens when the junk is located in an actually executable path? Most of the time, it is located behind a <em>JUMP_ABSOLUTE</em> instruction, and that&#x27;s easy enough to detect with the static algorithm I wrote. Consider this though:</p>
+<pre><code>LOAD_CONST         3
+POP_JUMP_IF_TRUE   42 
+...junk bytes here...
+IMPORT_NAME        1  #address 42</code></pre>
+<p>This code pushes the const at index 3 onto the stack. <em>POP_JUMP_IF_TRUE</em> checks the top of the stack, and jumps to the absolute bytecode offset if it is (after popping the top). In this case, as long as the const array has a true value at offset 3 (which is easy to guarantee), it will always jump, thus being equivalent to <em>JUMP_ABSOLUTE</em>. This is something my small static analyzer does not know though currently. I need to teach it to read const values like that and evaluate those jumps, then it can skip those junk instructions too.</p>
+<h4 id="insertion-of-junk-constants-and-local-names">Insertion of junk constants and local names</h4>
+<p>Another thing that this obfuscator does is insert random strings into both the constant and local names. It then goes through the bytecode and increments all <em>LOAD_CONST</em> and <em>LOAD_NAME</em> opcode arguments by the number of junk strings added to the respective arrays. This is a simple but effective obfuscation. Fortunately, it is also simple to revert if you can identify junk locals and global names by some shared attribute. In this case, the junk names include at least one space character.</p>
+<h4 id="open-questions">Open questions</h4>
+<p>I wonder why they did not obfuscate opcodes, or even change the opcode mapping. That would have been a royal pain, since then I would have needed to figure out what function maps to what integer value. Or, why did they not obfuscate arguments or length of argument bytes? This too would have taken some time to reverse. Writing a junk code insertion routine is a lot more challenging than changing a bit of cPython code. So why did they not go for these low hanging fruit? Maybe I do not know the Python VM enough to understand this. If you know or want to wager a guess, I would be interested to hear.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Deobfuscation and dumping the Python scripts of World of Warships</title>
+    <link>https://lpcvoid.com/blog/0007_wows_python_reversing</link>
+    <description><![CDATA[<p>A while ago I wrote a blog post about patching Wargaming&#x27;s World of Warships. Now, I was interested in attacking their Python subsystem, which might be interesting for various intents. This post attempts to document my research.</p>
+<p>WoWs uses Python within their engine to program their game logic. These Python scripts are obfusicated, so that programs like <a href="https://github.com/rocky/python-uncompyle6/">decompyle6</a> will not work out of the box. They actually modified a few functions of cpython to include an obfusication scheme.</p>
+<p>First of all, a quick look at the files that come with WoWs reveals that there exist a scripts.zip within a subdirectory. It is a regular zip file and can be opened with a utility such as 7zip. Kind of surprised that they did not mangle the zip format to dissalow this, but that was maybe decided against when developing this feature because it will stop the devs themselves to quickly check their archives. </p>
+<p>The archive contains a boatload (pun intended) of pyc files, which are python scripts compiled to a bytecode representation. This format, under normal circumstances, only allows for faster loading of files, since the loader can skip the tokenizing&#x2F;parsing step and directly load the already processed bytecode for execution. In this case though, decompyle refuses to dissasemble the pyc files.</p>
+<p>Time to fire up x64dbg and IDA.</p>
+<p>It quickly becomes apparent that WoWs uses zipimport for processing that whole zip file at once. </p>
+<p>As far as I can tell, they did not modify anything here, which makes sense because their obfusication regards Python internals. Fortunately for us, we are dealing with a Python function, which is thus open source. We can cheat here a bit by checking out <a href="https://github.com/qsnake/python/blob/master/src/Modules/zipimport.c">zipimport source code</a>.</p>
+<p>Here, the function we are interested in is called <strong>zipimporter_load_module</strong>. This function loads an entire module and imports it into the current namespace. By placing a breakpoint on the <strong>PySys_WriteStderr</strong> function and writing a small x64dbg script, we can actually list the modules that are loaded by the game.</p>
+<pre><code>bp 0x01CC1425,1
+start:
+log &quot;{s:[ebp-4]}&quot;
+run
+goto start</code></pre>
+<p>The log tab then contains entires like this:</p>
+<pre><code>153.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+154.&quot;mbad083ab&quot;
+155.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+156.&quot;package_profiles_helpers&quot;
+157.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+158.&quot;GameParams&quot;
+159.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+160.&quot;mbd1b28d9&quot;
+161.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+162.&quot;m15fb041b&quot;
+163.INT3 breakpoint at worldofwarships32.01CC1405 (01CC1405)!
+164.&quot;ConsumablesConstants&quot;</code></pre>
+<p>Which tells us not much, since these are actually just the files that we already saw within the zip, but at least we found an entry point to start digging around. </p>
+<p>Upon digging around more, and following the control flow, I stumbled upon the <strong>unmarshal_code</strong> function from the <strong>zipimport</strong> cpython module. This looks exactly like the sort of thing we are looking for. </p>
+<p>First off, a bit of information about the pyc file structure, it is very simple:</p>
+<pre><code>int32   magic;
+int32   timestamp;
+uint8[] data;</code></pre>
+<p>Since pyc files can be empty and still valid, it&#x27;s not surprising that the function checks the size first:</p>
+<pre><code>.text:0104022B 014                 cmp     ebx, 8                  ; ebx contains size of pyc
+.text:0104022E 014                 jge     short loc_1040271       ; check (size =&gt; 8); jump to loc_1040271 if true
+.text:01040230 014                 mov     esi, dword_8F53DD4      ; 
+.text:01040236 014                 mov     ecx, offset aBadPycData ; &quot;bad pyc data&quot;
+.text:0104023B 014                 call    PyErr_SetString_0       ; document what&#x27;s wrong using cpython PyErr_SetString</code></pre>
+<p>the next two checks are simple too, namely checks for the magic number and the timestamp. The magic number it expects is 0x0A0DF303, which corresponds to python 2.7. You are behind the times, Wargaming :)</p>
+<p>Up to this point there where no surprises. Once all the trivial pyc checks are done, the game starts unmarshalling code.</p>
+<pre><code>.text:0104033C 014                 lea     edx, [ebx-8]    ; length of code, minus the 8 byte header
+.text:0104033F 014                 lea     ecx, [edi+8]    ; marshalled code starts at 8. byte
+.text:01040342 014                 call    PyMarshal_ReadObjectFromString</code></pre>
+<p>As far as I can see, <strong>PyMarshal_ReadObjectFromString</strong> does nothing out of the ordinary. It simply wraps <strong>r_object</strong> call which unmarshals a string value (string being a byte array here). But wait, what is that sneaky call below, a few bytes before <code>ret</code>?</p>
+<p>Magic starts happening here. To understand what happens here, we need to look at the structure of a pyc file yet again.</p>
+<p>The section I marked <strong>data</strong> in the struct is marshaled python bytecode. This marshaling is a recursive algorithm that wraps a lot of different data types (strings, longs, bytes, even complex types such as lists and tuples) within one large root <strong>code</strong> object. This code object has several different sub members. One of it is a section called <strong>co_code</strong>, which contains the raw bytecode. Another one is <strong>co_consts</strong>, which contains a list of indexed constants that opcodes such as <strong>LOAD_CONST</strong> use. Here, wargaming did something strange. It actually misuses the const section of the root code object as a data storage for storing encrypted data. This data then gets XORed bytewise with the content of the code section, using the size of the code section in modulus to prevent overflow.</p>
+<pre><code>...
+.text:00F3DF76 02C                 cmp     esi, eax             ; exit if we are at end of const section
+.text:00F3DF78 02C                 jge     short loc_F3DF8E
+.text:00F3DF7A 02C                 mov     eax, esi             ; move index to eax for idiv
+.text:00F3DF7C 02C                 mov     ecx, [ebp+var_C]     ; offset to code buffer
+.text:00F3DF7F 02C                 cdq                          ; sign extension
+.text:00F3DF80 02C                 idiv    ebx                  ; int div for mod operation
+.text:00F3DF82 02C                 mov     al, [edx+ecx]        ; edx contains remainder, get next code byte      
+.text:00F3DF85 02C                 mov     ecx, [ebp+var_14]    ; get const buffer offset
+.text:00F3DF88 02C                 xor     [esi+ecx], al        ; xor code byte with const byte
+.text:00F3DF8B 02C                 inc     esi                  ; increment index
+.text:00F3DF8C 02C                 jmp     short loc_F3DF30     ; continue for next index
+...</code></pre>
+<p>If we type this out (using python, how ironic), we get something like this:</p>
+<pre><code>f = open(sys.argv[1], &quot;rb&quot;) #some pyc passed as parameter
+magic = f.read(4)
+moddate = f.read(4)
+codeobj = marshal.loads(f.read()) #unmarshal the code object
+size_code = len(codeobj.co_code)
+size_const = len(codeobj.co_consts[3])
+encrypted_code = codeobj.co_code[:]
+decrypted_const = []
+for x in range(size_const):
+    decrypted_const.append(ord(codeobj.co_consts[3][x]) ^ ord(encrypted_code[x % size_code]))</code></pre>
+<p>After this part is done, we can see a long string, which looks suspiciously like base64. And it actually is! After decoding, we get this:</p>
+<pre><code>00000000  78 9C CD 59 0B 78 1C 55 15 3E B3 9B 36 EF F4 41  xœÍY.x.U.&gt;³›6ïôA
+00000010  D3 24 6D 69 A7 05 4A 48 9B B6 69 A1 49 6B 5B 4A  Ó$mi§.JH›¶i¡Ik[J
+00000020  A9 08 02 05 B6 20 48 29 61 B3 33 9B CC 66 B3 9B  ©...¶ H)a³3›Ìf³›
+....</code></pre>
+<p>Hold up, i&#x27;ve seen these two first bytes before! Indeed, they are zlib header bytes. They are the CMF and FLG bytes, defined in the <a href="https://tools.ietf.org/html/rfc1950#page-4">standard</a>. CMF means &quot;Compression Method and flags&quot; and describes both the method (such as deflate) and the compression window size. FLG are some flags regarding the compression. In short, 78 9C boil down to the default zlib compression with deflate.</p>
+<p>After zlib decompression, we are greated with readable strings, yay!</p>
+<pre><code>000005A0  6D 6F 64 75 6C 65 74 08 00 00 00 5F 5F 66 69 6C  modulet....__fil
+000005B0  65 5F 5F 74 08 00 00 00 67 43 50 4C 42 78 38 36  e__t....gCPLBx86
+000005C0  74 0A 00 00 00 31 36 30 31 36 36 39 33 33 32 69  t....1601669332i
+000005D0  00 00 00 00 74 0B 00 00 00 63 6F 6C 6C 65 63 74  ....t....collect
+000005E0  69 6F 6E 73 74 09 00 00 00 75 74 66 38 5F 74 65  ionst....utf8_te
+000005F0  73 74 74 08 00 00 00 63 6F 70 79 5F 72 65 67 69  stt....copy_regi</code></pre>
+<p>Now, lets add the 8 header bytes back to make a valid pyc file and try running the result through decompyle6.</p>
+<pre><code>ImportError: Ill-formed bytecode file test.pyc
+&lt;class &#x27;KeyError&#x27;&gt;; &quot;marshaltype key &#x27;{&#x27; (dict) not implemented&quot;  </code></pre>
+<p>Well that&#x27;s a bummer. xdis actually did not implement dict unmarshalling, and I don&#x27;t know why. I need to do more research about Python bytecode, maybe this is the result of more obfusication at some bytecode level. I&#x27;ll get back here once I found out more.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Patching the Wargaming launcher to allow multiple clients</title>
+    <link>https://lpcvoid.com/blog/0006_wargaming_multiclient</link>
+    <description><![CDATA[<p>This post concerns the Windows win32 API, and is probably not very interesting if you have patched a binary before. For anybody who wishes to read about an easy patch, I hope you enjoy.</p>
+<p>I have been playing a video game called World of Tanks for quite some time now with my father. For a few weeks now, we have been going back and forth between World of Tanks, and Wargamings newer installment, World of Warships. Unfortunately, you cannot by default launch both game clients at the same time. It&#x27;s time we fix this.</p>
+<p>When you want to implement a restriction like that, there are pretty many options:</p>
+<ul>
+<li>You can create some file on start that gets deleted when your tools exits. Crusty, comes with many problems.</li>
+<li>You can search for the window title of your tool, or the name of your ELF&#x2F;PE file. Better, but what if a user uses a program with the same name?</li>
+<li>You could use a mutex or an atom, or whatever global named object your OS offers that we can abuse for testing if something already exists.</li>
+</ul>
+<p>The last point has many advantages for the mutex. First, a mutex actually gets closed by the system once your application terminates (or crashes), while an atom does not. This automatically prevents a whole class of bugs that would arise if we needed to manage the flags lifecycle ourselves. Second, the implementation is extremely simple, we only need two functions on Win32: <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexw">CreateMutexW</a> and <a href="https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-openmutexw">OpenMutexW</a>. Or the *A variants if you&#x27;re inclined.</p>
+<p>The tool checks for a mutex with a globally known (and unique) name. If it does not already exist, it creates it and continues execution. If it exists, the tool can exit with some sort of nag screen. Simple right?</p>
+<p>Well, that&#x27;s what the Wargaming launcher does. The API to this launcher lives in wgc_api.dll, which is loaded dynamically by every wargaming game. There, it tests for a mutex named <em>wgc_running_games_mtx</em>. Of course, there is lots of wrapping going on here, and the OpenMutexW function is called by 3 levels of indirection. It boils down to this:</p>
+<pre><code>.text:251C43C0    push    edi
+.text:251C43C1    push    eax
+.text:251C43C2    lea     eax, [ebp+var_C]
+.text:251C43C5    mov     large fs:0, eax
+.text:251C43CB    mov     [ebp+var_10], esp
+.text:251C43CE    mov     esi, ecx
+.text:251C43D0    cmp     dword ptr [esi+40h], 0
+.text:251C43D4    lea     eax, [ebp+var_15]
+.text:251C43D7    mov     [ebp+var_4], 0
+.text:251C43DE    lea     ecx, [ebp+var_24]
+.text:251C43E1    mov     [ebp+var_24], eax
+.text:251C43E4    setnz   [ebp+var_15]
+.text:251C43E8    lea     eax, [ebp+arg_0]
+.text:251C43EB    mov     [ebp+var_1C], esi
+.text:251C43EE    push    offset wgc_api.252C5E7C
+.text:251C43F3    mov     [ebp+var_20], eax
+.text:251C43F6    call    sr_test_mutex   ; nop this and set eax to 0
+.text:251C43FB    test    eax, eax
+.text:251C43FD    js      short loc_251C4433
+.text:251C43FF    cmp     dword ptr [esi+38h], 0
+.text:251C4403    jz      short loc_251C4433
+.text:251C4405    cmp     dword ptr [esi+3Ch], 8
+.text:251C4409    lea     eax, [esi+28h]
+.text:251C440C    jb      short loc_251C4410</code></pre>
+<p>sr_test_mutex (my naming skills are sick) returns a non zero value if the mutex is found. This value is always static, and represents a static error code they must have definded in some header. Anyhow, we need to survive the <code>test eax, eax</code>. Fortunately, windows is a fan of <a href="https://docs.microsoft.com/en-us/cpp/cpp/cdecl?view=vs-2019">__cdecl</a>, which means the caller cleans up the stack and we can get away with nuking parametrized calls. So that&#x27;s what we do.</p>
+<pre><code>.text:251C43F6    xor     eax,eax
+.text:251C43F8    nop
+.text:251C43F9    nop
+.text:251C43FA    nop
+.text:251C43FB    test    eax, eax
+.text:251C43FD    js      wgc_api.251C4433   </code></pre>
+<p>Since js tests the sign flag, we want <code>test eax,eax</code> to never set this flag, and this in turn means eax must always be 0. Since we nuked the CALL instruction, we have 5 bytes to set eax to 0. The shortest way to do that is xoring eax with itself, which sets it to 0 by the nature of the xor operation. This consumes two bytes, so the three <code>nop</code>s below are just padding and do nothing. That&#x27;s it, we are done.</p>
+<p>Here is a patch file for x64dbg, in case anybody wants it. The wgc_api.dll it works on has a sha256 sum of c9d48273984bc369a19b44b01b671c629acb6ec2886e52231f1854402d559258.</p>
+<pre><code>&gt;wgc_api.dll
+000043F6:E8-&gt;33
+000043F7:65-&gt;C0
+000043F8:00-&gt;90
+000043F9:00-&gt;90
+000043FA:00-&gt;90</code></pre>
+]]></description>
+  </item>
+  
+  <item>
+    <title>A quick rundown of the BEST2 instruction set.</title>
+    <link>https://lpcvoid.com/blog/0005_best2_instructionset</link>
+    <description><![CDATA[<p>Ever since I published <a href="https://github.com/lpcvoid/bmw-best2-vm">my first BEST2 VM</a>, I have gotten questions about the instruction set now and then. Recently I published my vastly improved and fairly complete <a href="https://github.com/lpcvoid/bmw-better-vm">second version</a>, which is fairly stable and written in C++. This post aims to explain what I know about the instruction set, some people perfer this format over reading code.</p>
+<p>The BEST2 instruction set was initially designed (as far as I can tell) by <a href="https://softing.com">Softing</a>. It is used by a virtual machine that is part of a runtime environment which can execute automotive diagnostic jobs. These jobs are written by engineers in a C like syntax and compiled to bytecode. The API is fairly rich, and includes functions for communication, large amounts of helper functions for boolean and integer logic, rich output formatting and data manipulation functions, shared memory and a small embedded database that operates on tables. The API functions are partly written directly in BEST2 assembler and linked by the compiler at compiletime.</p>
+<p>The VM itself is a stack and register machine. Arguments to functions are passed by registers. There are 8 long (32 bit) registers, 16 string registers and 8 float registers. The long registers are (simularly to x86) stacked in a way that allows easy access to individual bytes&#x2F;words.</p>
+<pre><code>struct bmwBESTVMStackedRegister {
+    union {
+        uint32 rl;
+        struct {
+            uint16 rw0;
+            uint16 rw1;
+        };
+        struct {
+            uint8 rb0;
+            uint8 rb1;
+            uint8 rb2;
+            uint8 rb3;
+        };
+    };
+};</code></pre>
+<p>The string registers are limited to 1024 bytes and initially empty. Operations can and will operate on whatever indices they please though, and the register is expected to grow to the index that was referenced. For example, consider following code:</p>
+<pre><code>clear S1
+move S1[2], S2[RL1:RL3]</code></pre>
+<p>In the first line, we clear S1, which sets all bytes to 0. The length after this instruction is also 0x00. In the second line, we copy some bytes from S2 to S1 begining at offset 2. This means that the first 2 bytes of S1 are now 0x00, and the bytes afterwards are filled by the contents of S2 beginning from the value of RL1 (register long 1) and counting RL3 bytes. This was a bit of a pitfall, since I kind of expected some sort of initialization, but nope.</p>
+<p>The VM has multiple flags, but nothing special - sign, carry, overflow and zero are pretty much what you would expect. There is a special one that acts as a trap register for catching or allowing errors, which some jobs use to great extent and which is a bit annoying. </p>
+<p>Instructions are of a static length and encoded in two bytes. The first contains an opcode for a instruction, and the second contains information about the addressing mode for the operand. Each addressing mode is encoded in the upper respective lower nibble of the second byte, which effectively limits the operand count to two. Sane choice.</p>
+<hr />
+<p>There are 15 operand addressing modes. The first four describe registers (regS, regAB, regI, regL). The next four address immediate values (imm8, imm16, imm32, immStr). The fun starts afterwards, where we get into the register indexing stuff. The indexing addressing scheme only operates on string registers, so if you ever find a long register referenced here, you have a decoding error. I&#x27;ll address these operand schemes briefly.</p>
+<p><strong>IdxImm:</strong> </p>
+<p>Immediate indexing. Used a lot when parsing xsend responses, which come from the car.</p>
+<p>Example: move RS1, RS2[2]</p>
+<p><strong>IdxReg:</strong> </p>
+<p>Indexing using the contents of another register.</p>
+<p>Example: move RS1, RS2[RAB2]</p>
+<p><strong>IdxRegImm:</strong></p>
+<p>This one had me stumped for a bit, since I could not quite imagine why they would implement this. I would guess that it&#x27;s an optimization for smaller code. Imagine you have a result of some operation in a long register RL2. You wish to use that to index a string register and copy data to RS2, but need to add a constant 3 to it (which is a common operation for processing diagnostic payloads). You would need to execute something like this:</p>
+<pre><code>move RL3, RL2
+add RL3, 3
+move RS2, RS1[RL3]</code></pre>
+<p>With IdxRegImm, you can do this:</p>
+<pre><code>move RS2, RS1[RL2+3]</code></pre>
+<p>This saves a few bytes and speeds things up.</p>
+<p><strong>IdxImmLenImm:</strong></p>
+<p>Indexing using two constants. The first one is the offset, and the second one is the lenght. This is comparable to a memcpy.</p>
+<p>Example: move RS1, RS2[3:4]</p>
+<p>This would copy 4 bytes to RS1, beginning at index 3 of RS2.</p>
+<p><strong>IdxImmLenReg, IdxRegLenImm, IdxRegLenReg</strong></p>
+<p>Same as IdxImmLenImm, but different sources of index.</p>
+<hr />
+<p>After decoding the instructions and operands, the instruction is executed. This is the annoying part, as there are many opcodes that need to be implemented. See my VM for most of them, but I ommited a few because I never encountered them in the wild while dealing with Fxx and Exx vehicles.</p>
+<p>The shared memory is accessed by shmset and shmget. Both opcodes expect some access key, which enables multiple shared memories at the same time. I have never seen this used though, and instead an empty string is passed. Other than that, shared memory behaves like a string register.</p>
+<p>Tables are a central part of the VM, since a lot of data is stored there. This can include simple strings describing portions of a diagnostic payload, up to complex tables detailing how response values are to be manipulated to get a human readable response.</p>
+<p>The jobs itself are located in .prg files, which are obfusicated in a very lazy fashion (why even bother). The file format is not very complicated, see my VM for a parser.</p>
+<hr />
+<p>I will add more to this overview with time, or whenever somebody asks.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>On the topic of browser extension security.</title>
+    <link>https://lpcvoid.com/blog/0004_sellout_browserext</link>
+    <description><![CDATA[<p>While reading on &#x2F;r&#x2F;firefox today, I stumbled upon <a href="https://old.reddit.com/r/firefox/comments/jbua53/nanoadblocker_nanodefender_is_malware_now/">a discussion</a> about how a browser extension was sold by a developer to a third party. This apparently stems from the original author not having the time for maintaining it anymore (why not just say so and step back then?). I do not want to discuss the handling of this issue here, what I am more interested in is the implication. The extension has north of 100k users, most of which would probably describe themselves as privacy aware. This is probably a valuable target demographic for malicious actors, and so far it&#x27;s looking like the new owners don&#x27;t have the users best interest in mind.<br /></p>
+<p>This is too easy. I mean, this time the internet noticed and there was a huge outcry. The problem here centers around distribution and gatekeeping. One of the main arguments Google and other proponents of walled gardens keep bringing up in favor of their stores is security. It&#x27;s supposed to be harder to distribute malicious code over these stores due to a plethora of automatic analysis that they do. Except this time, it apparently didn&#x27;t work and code got pushed successfully. If this doesn&#x27;t work reliably, I&#x27;d much rather install my extensions without going over Google (or Mozilla). If the gatekeepers fail, why even bother. Uploading an extension to the Chrome webstore just requires a zip file with the extension code and assets bundled. As far as I know, there isn&#x27;t even a method to link a repo or commit hash to the submission for verification. So what is it worth to host your extension on github?</p>
+<p>Give me an open build service (which I could host myself) which builds extensions, lets me download them in packaged form and then install them manually. Updates can then be optionally enabled by giving the browser a way to automatically check the build service for new releases, and then asking the user for permission to update.</p>
+<p>In the future, I&#x27;d also like stringent requirements for large extensions. For one, developers should be required to use some sort of U2F scheme to verify that they indeed did author commits. Just a login isn&#x27;t sufficient here due to how easy it is to transfer.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Using a static site generator now.</title>
+    <link>https://lpcvoid.com/blog/0003_blogc</link>
+    <description><![CDATA[<p>I designed this site quite a long time ago, and never really used it too much. Then, a few days ago, I decided to start this blog to see if I would enjoy this type of writing. As it turns out, so far I do. It also helps me practice touch typing, which I have recently started learning. Anyhow - since I plan to write at least a post a week, this blog needed to be built on a more solid approach other than copying template html files. I needed a site generator.</p>
+<p>I wanted one that was minimal, preferrably written in C, and which supports nice markup features along with not sticking Javascript everywhere. While I am sure that there are many such tools out there, my choice fell on blogc because of its incredibly well written documentation, along with its fast execution speed. </p>
+<p>The initial port was trivial, as blogc is built pretty straight forward. You define a template, and then call blogc to compile html from this template. It can use plain text files in order to insert content into posts, which allows me to concentrate on the content when writing, instead of thinking about the way it looks later. The plaintext that was used to generate this post, for example, is located <a href="https://lpcvoid.com/site/blogposts/0003_blogc.txt">here</a>.</p>
+<p>Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are <strong>FILTER_PER_PAGE</strong> and <strong>FILTER_PAGE</strong>. There is even documentation about these parameters, but I missed those for some reason, shame on me.</p>
+<p>Anyhow, quite happy with this setup so far. Might need a few css tweaks, but time will tell. I can&#x27;t recommend blogc enough.</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>GrapheneOS is amazing.</title>
+    <link>https://lpcvoid.com/blog/0002_grapheneos</link>
+    <description><![CDATA[<img src="https://grapheneos.org/logo.png" alt="GrapheneOS logo" class="blogheaderimage" />
+<!-- I should probably rehost this image myself. -->
+<p>I am not a fan of buying new phones every year. I have been using a HTC 10 since around 2016, and it has served me well so far thanks to custom roms that prolonged its life. The main problem with old phones is security related though, as most manufacturers simply stop patching their firmware at some point (HTC released the last firmware update for this phone in 2018 [version 2.41.401.41]). </p>
+<p>I always kind of ignored the issue, since I convinced myself that my threat model does not involve state actors or drive by exploitation, but rather tracking and fingerprinting. I ran the phone on LineageOS and MicroG in order to get the Google spyware off it - but that has its own problems, namely:</p>
+<ul>
+<li>LineageOS uses userdebug builds, which means it also by default enables a lot of debugging attack surface.</li>
+<li>It exposes the root user via adb, which is exactly as scary as it sounds.</li>
+<li>It requires an unlocked bootloader in order to not brick your phone, which makes threat persistance easier.</li>
+<li>It does not offer any sort of rollback protection and as such it is possible to exploit vulnerabilities that have been dealt with by a certain patch level.</li>
+</ul>
+<p>Note that this is not an attack on the guys at LineageOS - but I started wondering what a more ideal solution would look like. Thats when somebody on reddit mentioned <a href="https://grapheneos.org/">GrapheneOS</a>. I wont quote their security model here, but in short they take it <em>very</em> seriously, <a href="https://grapheneos.org/faq#security-and-privacy">go check it out</a>. GraphaneOS runs only on Pixel devices, which is the reason I got one a few days ago. I only use fdroid as an appstore, and everything I install must be open source. I&#x27;d recommend you do the same, it&#x27;s worth it. Do not forget to re-lock your bootloader after install!</p>
+]]></description>
+  </item>
+  
+  <item>
+    <title>Moving my page to github pages.</title>
+    <link>https://lpcvoid.com/blog/0001_githubpages</link>
+    <description><![CDATA[<img src="https://lpcvoid.com/img/GitHub-Mark-120px-plus.png" alt="Github logo" class="blogheaderimage" />
+<p>Ever since I made this website, I hosted it on a VPS for a few bucks a month running lighttpd. It was fast and worked well, but the server itself was for another project which I have since then frozen for the time being. I noticed that quite a few people had their personal websites on github and using their hosting feature for exposing it over https. I decided to try it.</p>
+<p>The first thing I had to decide is if this move is going to make any reader that stumbles accross here more suspect to tracking than previously. I am an avid opponent of any sort of online tracking, and as such this website does its absolute best to not do this. No cookies, no serverside logging, just free html pages. Would the move to github hinder this? Do they employ tracking?</p>
+<p>Prior to moving, I hosted on OVH. I&#x27;ve been doing this for around ten years, and they where always good to me. I have no way of knowing if they track user access to any of their servers, but for the sake of this argument I have to assume they do. Github also has insights avaliable to me, but it does not resolve IP addresses or any data that may be used to track an individual. They can probably do that with their non public logs, but OVH could too, which means it comes down to which entity you like more. </p>
+<p>I breifly considered running the site on my server at home, which is exposed to the internet for purposes of having access to my stuff over ssh. But this comes with its own downsides, namely privacy (it would always expose my public IP), and that my residential connection is not a high availability line.</p>
+<p>So, after a bit of consideration I moved to github pages. One less server to maintain, since I am lazy like that. An added bonus is that my commits are now public, and whoever reads this can laugh at my HTML&#x2F;CSS mistakes.</p>
+]]></description>
+  </item>
+  
+</channel>
+
+</rss>
