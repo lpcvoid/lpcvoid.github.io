@@ -30,6 +30,7 @@
 <p>Don&#x27;t get me wrong here - I am grateful for the countless hours that millions of people pour into their open source projects for often not a dime of compensation. I just feel that we should handle security topics with higher priority, specially when your application domain is so critical.</p>
 <p>If anybody is still reading, and in the process of building a mobile application that can potentially be used to connect to selfhostable HTTP backends, please add support for client certificates. The advent of hardware-backed keystores such as the <a href="https://safety.google/intl/en_us/pixel/">Google Titan HSM</a>, paired with new APIs like the <a href="https://developer.android.com/training/articles/keystore">Android Keystore</a> enables a new level of security within this space that your users will thank you for (the most important IMO being key extraction prevention). Don&#x27;t take my word for it, there are many threads about this topic for a lot of projects.</p>
 ]]></description>
+    <pubDate>2022-07-17</pubDate>
   </item>
   
   <item>
@@ -93,6 +94,7 @@ else
         echo &quot;Done! You can now import $username.pfx into your cert store. You&#x27;ll need ca.crt on the server side.&quot;
 fi</code></pre>
 ]]></description>
+    <pubDate>2022-02-06</pubDate>
   </item>
   
   <item>
@@ -209,6 +211,7 @@ fi</code></pre>
 <p>I went with an Aeotec Z-Stick Gen5 as a gateway, and using <a href="https://github.com/domoticz/domoticz">Domoticz</a> on my little x86_64 server that&#x27;s sitting in my pantry, running in a Docker container. Still waiting for sensors to arrive for preliminary testing.</p>
 <p>...to be continued...</p>
 ]]></description>
+    <pubDate>2022-01-31</pubDate>
   </item>
   
   <item>
@@ -246,6 +249,7 @@ IMPORT_NAME        1  #address 42</code></pre>
 <h4 id="open-questions">Open questions</h4>
 <p>I wonder why they did not obfuscate opcodes, or even change the opcode mapping. That would have been a royal pain, since then I would have needed to figure out what function maps to what integer value. Or, why did they not obfuscate arguments or length of argument bytes? This too would have taken some time to reverse. Writing a junk code insertion routine is a lot more challenging than changing a bit of cPython code. So why did they not go for these low hanging fruit? Maybe I do not know the Python VM enough to understand this. If you know or want to wager a guess, I would be interested to hear.</p>
 ]]></description>
+    <pubDate>2020-11-08</pubDate>
   </item>
   
   <item>
@@ -339,6 +343,7 @@ for x in range(size_const):
 &lt;class &#x27;KeyError&#x27;&gt;; &quot;marshaltype key &#x27;{&#x27; (dict) not implemented&quot;  </code></pre>
 <p>Well that&#x27;s a bummer. xdis actually did not implement dict unmarshalling, and I don&#x27;t know why. I need to do more research about Python bytecode, maybe this is the result of more obfusication at some bytecode level. I&#x27;ll get back here once I found out more.</p>
 ]]></description>
+    <pubDate>2020-10-29</pubDate>
   </item>
   
   <item>
@@ -395,6 +400,7 @@ for x in range(size_const):
 000043F9:00-&gt;90
 000043FA:00-&gt;90</code></pre>
 ]]></description>
+    <pubDate>2020-10-25</pubDate>
   </item>
   
   <item>
@@ -454,6 +460,7 @@ move RS2, RS1[RL3]</code></pre>
 <hr />
 <p>I will add more to this overview with time, or whenever somebody asks.</p>
 ]]></description>
+    <pubDate>2020-10-17</pubDate>
   </item>
   
   <item>
@@ -464,6 +471,7 @@ move RS2, RS1[RL3]</code></pre>
 <p>Give me an open build service (which I could host myself) which builds extensions, lets me download them in packaged form and then install them manually. Updates can then be optionally enabled by giving the browser a way to automatically check the build service for new releases, and then asking the user for permission to update.</p>
 <p>In the future, I&#x27;d also like stringent requirements for large extensions. For one, developers should be required to use some sort of U2F scheme to verify that they indeed did author commits. Just a login isn&#x27;t sufficient here due to how easy it is to transfer.</p>
 ]]></description>
+    <pubDate>2020-10-17</pubDate>
   </item>
   
   <item>
@@ -475,6 +483,7 @@ move RS2, RS1[RL3]</code></pre>
 <p>Then I wanted to show the last three posts on the index page. First I thought I had run into a problem, since there is no way to limit the number of blocks within the templating language. I emailed the author, Rafael Martins, and he told me about the filtering mechanics that could be used for this purpose. See the Makefile, the magic parameters are <strong>FILTER_PER_PAGE</strong> and <strong>FILTER_PAGE</strong>. There is even documentation about these parameters, but I missed those for some reason, shame on me.</p>
 <p>Anyhow, quite happy with this setup so far. Might need a few css tweaks, but time will tell. I can&#x27;t recommend blogc enough.</p>
 ]]></description>
+    <pubDate>2020-10-01</pubDate>
   </item>
   
   <item>
@@ -492,6 +501,7 @@ move RS2, RS1[RL3]</code></pre>
 </ul>
 <p>Note that this is not an attack on the guys at LineageOS - but I started wondering what a more ideal solution would look like. Thats when somebody on reddit mentioned <a href="https://grapheneos.org/">GrapheneOS</a>. I wont quote their security model here, but in short they take it <em>very</em> seriously, <a href="https://grapheneos.org/faq#security-and-privacy">go check it out</a>. GraphaneOS runs only on Pixel devices, which is the reason I got one a few days ago. I only use fdroid as an appstore, and everything I install must be open source. I&#x27;d recommend you do the same, it&#x27;s worth it. Do not forget to re-lock your bootloader after install!</p>
 ]]></description>
+    <pubDate>2020-09-29</pubDate>
   </item>
   
   <item>
@@ -504,6 +514,7 @@ move RS2, RS1[RL3]</code></pre>
 <p>I breifly considered running the site on my server at home, which is exposed to the internet for purposes of having access to my stuff over ssh. But this comes with its own downsides, namely privacy (it would always expose my public IP), and that my residential connection is not a high availability line.</p>
 <p>So, after a bit of consideration I moved to github pages. One less server to maintain, since I am lazy like that. An added bonus is that my commits are now public, and whoever reads this can laugh at my HTML&#x2F;CSS mistakes.</p>
 ]]></description>
+    <pubDate>2020-09-28</pubDate>
   </item>
   
 </channel>

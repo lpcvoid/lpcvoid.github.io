@@ -17,7 +17,6 @@ BASE_URL ?= https://lpcvoid.com
 
 
 DATE_FORMAT = "%Y-%m-%d"
-DATE_FORMAT_ATOM = "%Y-%m-%d"
 
 BLOGC_COMMAND = \
 	LC_ALL=$(LOCALE) \
