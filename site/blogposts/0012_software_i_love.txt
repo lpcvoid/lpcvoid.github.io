@@ -1,0 +1,46 @@
+TITLE: List of software I absolutely *love*
+DATE: 2022-01-03
+TAGS: software love
+-------------------------
+
+Looking back, my blogposts mostly revolve aroud complaining about things I dislike. There are also many things to like out there, so this post is dedicated to that: software I use often, love, and want to recommend to others.
+
+### Sway
+
+After some years of using GNOME as my primary desktop environment, I tried [Sway](https://swaywm.org/). You know that feeling when you try something new,
+and it instantly hits that sweet spot of being both intuitive and feeling *right*? That's Sway for me. I love how lightweight it is, the fact that it's
+running on Wayland so multiple displays with different resoultions aren't painful anymore, and the best part: it's highly configurable. I'll upload my config somewhere
+soon.
+
+I recommend running it together with `swaylock` and `waybar`.
+
+### SQLite
+
+Whenever I have a situation within some project of mine where I need to save some data on disk, 9/10 times I use sqlite. It's fast, has bindings for every language
+under the sun, well documented (the [documentation](https://www.sqlite.org/docs.html) is interesting enough to be read like a book, IMHO) and [battle tested](https://www.sqlite.org/mostdeployed.html).
+
+Next time you need to save some data - consider joining the fan club.
+
+### fish
+
+The first thing I do whenever I set up a new computer is install the fish shell. I have nothing against bash, in fact you can tune it to have a lot of the features that
+fish has out of the box, but that's the problem, I am lazy. Fish has a very good command history, and the built-in git support is amazing. 
+
+### Thunderbird
+
+I love Email in general. Open standard, widely supported, text first. Thunderbird brings a lot to the table - besides e-mail, it can also be used as an RSS reader, which
+is my primary method of consuming news (...along with a rather large list of RSS filters - never having to read something about Elon Musk again by itself is already worth it).
+
+### KDE Okular
+
+Okular is a document viewer. I use it to read (and edit!) PDFs. It is snappy, doesn't annoy me, and is open source (okay, everything on this list is, but still!). Also,
+did you know that it's the first piece of software which is [certified](https://www.blauer-engel.de/en/products/kde-okular) by "Blauer Engel" (a German Eco label) as being "Energy efficient"?
+Their testing methology looks decent. I bet we won't see any Electron stuff on that list anytime soon (and not on this list either).
+
+### Firefox
+
+If this list where sorted by popularity, then Firefox would probably be a lot higher, but it isn't, so it's down here. Firefox is fantastic software. Mozilla,
+the parent company, wasn't always without missteps. 
+We had the [Mr. Robot marketing thing](https://www.cnet.com/news/privacy/mozilla-investigates-mr-robot-firefox-extension-problem/), which was a pretty big WTF moment for me.
+Or the [funny graph](https://calpaterson.com/mozilla.html) about their CEO making more money while Firefox user numbers tanked. But all in all, I feel like they are doing
+their best in a hypercommercialized world to stay afloat, while building an absolutely amazing piece of very complex technology.
