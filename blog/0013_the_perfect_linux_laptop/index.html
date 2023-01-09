@@ -1,0 +1,146 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - The perfect Linux laptop</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication?-->
+	<div class="center"><div class="ukraine-first">Please support Ukraine against Russian aggression.</div><div class="ukraine-last">If you can, please <a href="https://news.un.org/en/focus/ukraine/donate">donate</a>.</div></div>
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/4AYFD3FE">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">The perfect Linux laptop</h3>
+              <h4 class="float-right">Published on: 2023-01-09</h4>
+            </div>
+            <div>
+                <p>Ever since I moved my main computing environment over to a desktop at the start of the pandemic (which by now is already like 70 years ago, time flies man), I have 
+regretted not being mobile anymore - even if that means sitting on the sofa instead of somewhere outside.</p>
+<p>So, a few weeks ago, I started looking for a laptop. I wanted something small-ish, max 14 inch. It shall have a 1080p display, since I can&#x27;t stand the waste of
+energy and problems with nonstandard DPI with these high resolution but small displays. I wanted it to have at least DDR4 RAM, since I had some laying around. Also,
+I personally find Thunderbolt support really important, for those situations where I do want to connect it to my docking station. 
+This also implies that I want USB-C power delivery, which makes the docking situation less painful, and also makes it possible to only carry around a small
+charger which can at the same time charge my phone. Oh, and I didn&#x27;t want an <a href="https://www.youtube.com/watch?v=OF_5EKNX0Eg">Nvidia</a> GPU, 
+since they don&#x27;t offer open source drivers and <a href="https://swaywm.org">Sway</a> doesn&#x27;t support anything proprietary, which is a good thing. So, ideally Intel, because I never 
+had any problems with <code>i915</code>.</p>
+<p>So, with all these criterias set, long story short I settled on a Dell Latitude 7390. The decision was actually easy - I just searched through used laptops on Ebay, while
+ignoring the Thinkpad series (I cannot stand their swapping of fn and ctrl [I know you can remap it, but still]). Also, HP Elitebooks where way more expensive than Dell
+Latitudes. I paid 271 EUR for the following configuration:</p>
+<p><code>
+H&#x2F;W path       Device           Class          Description
+==========================================================
+                                system         Latitude 7390 (081B)
+&#x2F;0                              bus            09386V
+&#x2F;0&#x2F;0                            memory         64KiB BIOS
+&#x2F;0&#x2F;4d                           memory         16GiB System Memory
+&#x2F;0&#x2F;4d&#x2F;0                         memory         16GiB SODIMM DDR4 Synchronous Unbuffered (Unregistered) 2400 MHz (0,4 ns)
+&#x2F;0&#x2F;4d&#x2F;1                         memory         [empty]
+&#x2F;0&#x2F;51                           memory         256KiB L1 cache
+&#x2F;0&#x2F;52                           memory         1MiB L2 cache
+&#x2F;0&#x2F;53                           memory         6MiB L3 cache
+&#x2F;0&#x2F;54                           processor      Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz
+&#x2F;0&#x2F;100                          bridge         Xeon E3-1200 v6&#x2F;7th Gen Core Processor Host Bridge&#x2F;DRAM Registers
+&#x2F;0&#x2F;100&#x2F;2                        display        UHD Graphics 620
+&#x2F;0&#x2F;100&#x2F;4                        generic        Xeon E3-1200 v5&#x2F;E3-1500 v5&#x2F;6th Gen Core Processor Thermal Subsystem
+&#x2F;0&#x2F;100&#x2F;14                       bus            Sunrise Point-LP USB 3.0 xHCI Controller
+&#x2F;0&#x2F;100&#x2F;14&#x2F;0    usb1             bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;14&#x2F;0&#x2F;4                   communication  N5321 gw
+&#x2F;0&#x2F;100&#x2F;14&#x2F;0&#x2F;5                   multimedia     Integrated_Webcam_HD
+&#x2F;0&#x2F;100&#x2F;14&#x2F;0&#x2F;7                   communication  Bluetooth wireless interface
+&#x2F;0&#x2F;100&#x2F;14&#x2F;0&#x2F;8                   input          SiW HID Touch Controller
+&#x2F;0&#x2F;100&#x2F;14&#x2F;1    usb2             bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;14.2                     generic        Sunrise Point-LP Thermal subsystem
+&#x2F;0&#x2F;100&#x2F;15                       generic        Sunrise Point-LP Serial IO I2C Controller #0
+&#x2F;0&#x2F;100&#x2F;15.1                     generic        Sunrise Point-LP Serial IO I2C Controller #1
+&#x2F;0&#x2F;100&#x2F;15.2                     generic        Sunrise Point-LP Serial IO I2C Controller #2
+&#x2F;0&#x2F;100&#x2F;15.3                     generic        Sunrise Point-LP Serial IO I2C Controller #3
+&#x2F;0&#x2F;100&#x2F;16                       communication  Sunrise Point-LP CSME HECI #1
+&#x2F;0&#x2F;100&#x2F;1c                       bridge         Sunrise Point-LP PCI Express Root Port #1
+&#x2F;0&#x2F;100&#x2F;1c&#x2F;0                     generic        RTS525A PCI Express Card Reader
+&#x2F;0&#x2F;100&#x2F;1c.2                     bridge         Sunrise Point-LP PCI Express Root Port #3
+&#x2F;0&#x2F;100&#x2F;1c.2&#x2F;0  wlp2s0           network        Wireless 8265 &#x2F; 8275
+&#x2F;0&#x2F;100&#x2F;1c.4                     bridge         Sunrise Point-LP PCI Express Root Port #5
+&#x2F;0&#x2F;100&#x2F;1d                       bridge         Sunrise Point-LP PCI Express Root Port #9
+&#x2F;0&#x2F;100&#x2F;1d&#x2F;0                     storage        A2000 NVMe SSD
+&#x2F;0&#x2F;100&#x2F;1f                       bridge         Sunrise Point LPC Controller&#x2F;eSPI Controller
+&#x2F;0&#x2F;100&#x2F;1f.2                     memory         Memory controller
+&#x2F;0&#x2F;100&#x2F;1f.3                     multimedia     Sunrise Point-LP HD Audio
+&#x2F;0&#x2F;100&#x2F;1f.4                     bus            Sunrise Point-LP SMBus
+&#x2F;0&#x2F;100&#x2F;1f.6    enp0s31f6        network        Ethernet Connection (4) I219-LM
+&#x2F;0&#x2F;1                            system         PnP device PNP0c02
+&#x2F;0&#x2F;2                            system         PnP device PNP0b00
+&#x2F;0&#x2F;3                            generic        PnP device INT3f0d
+&#x2F;0&#x2F;4                            input          PnP device PNP0303
+&#x2F;0&#x2F;5                            system         PnP device PNP0c02
+&#x2F;0&#x2F;6                            system         PnP device PNP0c02
+&#x2F;0&#x2F;7                            system         PnP device PNP0c02
+&#x2F;0&#x2F;8                            system         PnP device PNP0c02
+&#x2F;1                              power          DELL DM3WC64
+&#x2F;2             wwx0215e0ec0100  network        Ethernet interface
+</code></p>
+<p>So, I got a 8. Gen i5, 16GB RAM, and Thunderbolt - and even a touchscreen. Pretty good deal! 
+And I can report that eveything (Audio, Webcam, Touchscreen, USB ports, Thunderbolt) works with Debian 11 (Kernel 5.10).</p>
+<p>Just one problem...</p>
+<h3 id="keyboard-swap">Keyboard swap</h3>
+<p>The Keyboard was the <a href="https://en.wikipedia.org/wiki/German_keyboard_layout">German QWERTZ layout</a>. I can touch type ANSI-US QWERTY without really caring all too 
+much about the layout, but it still annoyed the hell out of me. So I looked at other pictures of internals of the laptop, with the plan to do a swap of the keyboard.
+The good news first: yes, it&#x27;s possible, but you need to take care which keyboard you buy.</p>
+<p>You need two things: an upper palmrest, which is one large plastic frame with the correct keyboard cutout, and the keyboard itself. </p>
+<img src="https://lpcvoid.com/img/laptop/palmrest_top.jpg" style="max-height: 400px; max-width: 400px;"/>
+<img src="https://lpcvoid.com/img/laptop/palmrest_bottom.jpg" style="max-height: 400px; max-width: 400px;"/>
+<p>The palmrest was the hardest part, and I was lucky - only a single seller was selling one. The keyboard seemed easier, loads of ANSI US keyboards on eBay. 
+But I had to try two until I found one that actually works completely, as the Windows&#x2F;Super key wasn&#x27;t working on the first one. If you&#x27;re ever in the same situation,
+here&#x27;s the exact model I used:<br /></p>
+<img src="https://lpcvoid.com/img/laptop/keyboard_back.jpg" style="max-height: 400px; max-width: 400px;"/>
+<p>It&#x27;s a bit annoying to take it all apart, but be careful with the ribbons (and don&#x27;t strip any screws!), and you&#x27;ll be fine.</p>
+<h3 id="all-in-all---">All in all...</h3>
+<p>... a very good laptop. Everything works, battery lasts forever and display is great. I can absolutely recommend this setup. It&#x27;s rugged enough for throwing it into
+a bag, and beefy enough for compiling code.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2023-01-09 19:25:07. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="rssmsg">Subscribe with RSS: <a href="https://lpcvoid.com/rss">https://lpcvoid.com/rss</a></div>
+    </div>
+
+</body>
+
+</html>
