@@ -44,3 +44,9 @@ the parent company, wasn't always without missteps.
 We had the [Mr. Robot marketing thing](https://www.cnet.com/news/privacy/mozilla-investigates-mr-robot-firefox-extension-problem/), which was a pretty big WTF moment for me.
 Or the [funny graph](https://calpaterson.com/mozilla.html) about their CEO making more money while Firefox user numbers tanked. But all in all, I feel like they are doing
 their best in a hypercommercialized world to stay afloat, while building an absolutely amazing piece of very complex technology.
+
+### Rclone
+
+I use Rclone for backing up data (using cron for managing backup times). It supports [many backends](https://rclone.org/#providers), even though I only use it with sftp.
+I especially love that I can layer backends. For example, Rclone allows to layer a crypto backend onto an sftp backend, so that any file operation is automatically encrypted.
+If you're looking for some backup solution - seriously consider Rclone + cron.
