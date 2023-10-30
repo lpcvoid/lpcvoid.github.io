@@ -93,6 +93,10 @@ here&#x27;s the exact model I used:<br /></p>
 <h3 id="all-in-all---">All in all...</h3>
 <p>... a very good laptop. Everything works, battery lasts forever and display is great. I can absolutely recommend this setup. It&#x27;s rugged enough for throwing it into
 a bag, and beefy enough for compiling code.</p>
+<h3 id="update-2023-10-30">Update 2023-10-30</h3>
+<p>It&#x27;s been a solid daily driver on the 5.10 kernel. On Debian Bookworm&#x27;s 6.10 though, suspend started being a problem. The laptop would &quot;freeze&quot; after resume, with the fan spinning, keyboard illumination being on, and the screen being off (no display illumination even). The only thing that &quot;helped&quot; was a hard-reset by power-button. I searched around for a solution for a fairly long time, until I stumbled on <a href="https://askubuntu.com/questions/1241771/dell-latitude-7390-ubuntu-20-04-sometimes-hangs-and-reboot-after-pressing-s">this AskUbuntu</a> post. </p>
+<p>I can confirm the problem disappears when I boot with <code>snd_hda_intel.dmic_detect=0</code>. <code>&#x2F;sys&#x2F;power&#x2F;mem_sleep</code> was always on <code>deep</code> for me, so I didn&#x27;t need to override that parameter as suggested additionally in the post. I tried looking in the source what the parameter actually does (<a href="https://github.com/torvalds/linux/blob/master/sound/pci/hda/hda_intel.c#L159">link</a>). It seems to disable some DSP firmware probe, which concerned me because I thought it may impact my audio or something, but nope.</p>
+<p>If anybody can shed some further light on this &quot;hack&quot; - please email me!</p>
 ]]></description>
     <pubDate>2023-01-09</pubDate>
   </item>
