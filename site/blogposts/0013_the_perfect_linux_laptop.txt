@@ -106,7 +106,7 @@ It's been a solid daily driver on the 5.10 kernel. On Debian Bookworm's 6.10 tho
 
 I can confirm the problem disappears when I boot with `snd_hda_intel.dmic_detect=0`. `/sys/power/mem_sleep` was always on `deep` for me, so I didn't need to override that parameter as suggested additionally in the post. I tried looking in the source what the parameter actually does ([link](https://github.com/torvalds/linux/blob/master/sound/pci/hda/hda_intel.c#L159)). It seems to disable some DSP firmware probe, which concerned me because I thought it may impact my audio or something, but nope.
 
-# Update 2023-10-31 (Happy Helloween!)
+### Update 2023-10-31 (Happy Helloween!)
 
 Of course, a day after writing an update that the above kernel parameter works, it stopped working. I spent another evening searching for a possible fix.
 I tried to reproduce the suspend problem by running `systemctl suspend` in a loop, as well as manually setting system state via `echo mem > /sys/power/state` to rule out any potential bug in systemd (probably not needed, in hindsight). I managed to reproduce it using this method, in about ~10% of cases. I can confirm that it happens when suspending, and not when waking up.
@@ -114,5 +114,7 @@ I tried to reproduce the suspend problem by running `systemctl suspend` in a loo
 After some more searching, I found a method which actually, so far, works. I have run 90+ suspend-and-resume iterations now, and it's not a problem anymore.
 
 The fix is yet another kernel parameter: `intel_iommu=off`. This disables the Intel Virtualization support within the Kernel. I messed a lot with this parameter in the past when I tried out iGPU passthrough within Proxmox, so it certainly rang a bell. I don't plan on using virtualization on this laptop, so it's fine for me - but be aware of this downside if you happen to stumble on these pages with the same problem.
+
+I found a very interesting thread on the kernel bugzilla about this issue: [link](https://bugzilla.kernel.org/show_bug.cgi?id=197029)
 
 I hope I don't have to write another update here :)

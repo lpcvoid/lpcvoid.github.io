@@ -133,11 +133,12 @@ a bag, and beefy enough for compiling code.</p>
 <h3 id="update-2023-10-30">Update 2023-10-30</h3>
 <p>It&#x27;s been a solid daily driver on the 5.10 kernel. On Debian Bookworm&#x27;s 6.10 though, suspend started being a problem. The laptop would &quot;freeze&quot; after resume, with the fan spinning, keyboard illumination being on, and the screen being off (no display illumination even). The only thing that &quot;helped&quot; was a hard-reset by power-button. I searched around for a solution for a fairly long time, until I stumbled on <a href="https://askubuntu.com/questions/1241771/dell-latitude-7390-ubuntu-20-04-sometimes-hangs-and-reboot-after-pressing-s">this AskUbuntu</a> post. </p>
 <p>I can confirm the problem disappears when I boot with <code>snd_hda_intel.dmic_detect=0</code>. <code>&#x2F;sys&#x2F;power&#x2F;mem_sleep</code> was always on <code>deep</code> for me, so I didn&#x27;t need to override that parameter as suggested additionally in the post. I tried looking in the source what the parameter actually does (<a href="https://github.com/torvalds/linux/blob/master/sound/pci/hda/hda_intel.c#L159">link</a>). It seems to disable some DSP firmware probe, which concerned me because I thought it may impact my audio or something, but nope.</p>
-<h1 id="update-2023-10-31--happy-helloween--">Update 2023-10-31 (Happy Helloween!)</h1>
+<h3 id="update-2023-10-31--happy-helloween--">Update 2023-10-31 (Happy Helloween!)</h3>
 <p>Of course, a day after writing an update that the above kernel parameter works, it stopped working. I spent another evening searching for a possible fix.
 I tried to reproduce the suspend problem by running <code>systemctl suspend</code> in a loop, as well as manually setting system state via <code>echo mem &gt; &#x2F;sys&#x2F;power&#x2F;state</code> to rule out any potential bug in systemd (probably not needed, in hindsight). I managed to reproduce it using this method, in about ~10% of cases. I can confirm that it happens when suspending, and not when waking up.</p>
 <p>After some more searching, I found a method which actually, so far, works. I have run 90+ suspend-and-resume iterations now, and it&#x27;s not a problem anymore.</p>
 <p>The fix is yet another kernel parameter: <code>intel_iommu=off</code>. This disables the Intel Virtualization support within the Kernel. I messed a lot with this parameter in the past when I tried out iGPU passthrough within Proxmox, so it certainly rang a bell. I don&#x27;t plan on using virtualization on this laptop, so it&#x27;s fine for me - but be aware of this downside if you happen to stumble on these pages with the same problem.</p>
+<p>I found a very interesting thread on the kernel bugzilla about this issue: <a href="https://bugzilla.kernel.org/show_bug.cgi?id=197029">link</a></p>
 <p>I hope I don&#x27;t have to write another update here :)</p>
 
                 
@@ -146,7 +147,7 @@ I tried to reproduce the suspend problem by running <code>systemctl suspend</cod
         </div>
         
 
-        <div class="generationmsg">Site generated on 2023-10-31 20:39:34. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="generationmsg">Site generated on 2023-10-31 21:00:04. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
         <div class="rssmsg">Subscribe with RSS: <a href="https://lpcvoid.com/rss">https://lpcvoid.com/rss</a></div>
     </div>
 
