@@ -1,0 +1,214 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - The ultimate Linux laptop</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication?-->
+                        <!-- Update end of 2023: I have never gotten spam on this address - seems to work-->
+	<div class="center"><div class="ukraine-first">Please support Ukraine against Russian aggression.</div><div class="ukraine-last">If you can, please <a href="https://news.un.org/en/focus/ukraine/donate">donate</a>.</div></div>
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/FJF84N2Y">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">The ultimate Linux laptop</h3>
+              <h4 class="float-right">Published on: 2023-12-26</h4>
+            </div>
+            <div>
+                <p>Well, this is kind of awkward. I wrote a blog post around a year ago where I claimed to have found the perfect Linux laptop. </p>
+<p>It turns out, dear reader, that I lied to you. I was never able to fix the glaring suspend&#x2F;resume problem that I hinted at in the updates to the article. So, I did what no self-respecting
+Tinkerer would do after months of troubleshooting: I decided to give up and throw money at the problem, hoping it would go away.</p>
+<p>Like the last time, I had a list of must-haves (I really dislike the word &quot;requirements&quot;) that the new laptop should bring in order to contend:</p>
+<h3 id="point-1---amd-based">Point 1 - AMD based</h3>
+<p>This was born out of the fact that I have a desktop machine running full AMD (5600x + 6700xt on an AM4 mainboard), which has been working absolutely flawlessly for about 3 years now. I bought it during the pandemic to play Valheim, and it&#x27;s just been so insanely unproblematic (running Ubuntu) that I hope to mirror that experience for my laptop. The plan is to only have a single computer.</p>
+<p>The no NVIDIA part <a href="https://drewdevault.com/2017/10/26/Fuck-you-nvidia.html">should be obvious</a>. </p>
+<h3 id="point-2---thunderbolt">Point 2 - Thunderbolt</h3>
+<p>I <em>love</em> how you can simply connect your laptop with a docking station and have a desktop replacement with a single wire. USB4 works also (Thunderbolt 4 is basically just USB4 with all features). There&#x27;s unfortunately some ambiguity around PCIe passthrough in USB4 (vendors don&#x27;t need to pass PCIe lanes to be USB4 conform). Thankfully, Microsoft (those two words in close proximity, wow) <a href="https://learn.microsoft.com/en-us/windows-hardware/test/hlk/testref/7d627bf0-25f3-4564-b554-b2a3450e2bcf">specified</a> that every laptop that wants to be &quot;Windows 11 ready&quot; must expose PCIe lanes via USB4 (this is called &quot;Thunderbolt 3 compatibility&quot;). </p>
+<p>Also, I want to try out an eGPU setup. There&#x27;s going to be a separate blog post about this, but as a small teaser, I am writing this blog post with a working, hotpluggable eGPU setup :)</p>
+<h3 id="point-3---powerful-and-fast">Point 3 - powerful and fast</h3>
+<p>I want to replace my desktop with this laptop. My desktop isn&#x27;t an insane speed machine by any stretch, but it does compile code pretty fast. Ideally, this laptop can also do that, and even
+chomp through some games. </p>
+<h3 id="point-4---portable--ideally-13-3-inches">Point 4 - portable, ideally 13.3 inches</h3>
+<p>Yeah, I like small laptops. For some reason, even though I have been sitting in front of computers for over 20 years now, I still have pretty good eyesight. This means I don&#x27;t need to go to 15&quot; laptops just yet. This may change in the future when I grow older, but for now, I will enjoy smaller form factors for as long as I can.</p>
+<h3 id="point-5---no-soldered-ram">Point 5 - no soldered RAM</h3>
+<p>Okay, at that point, I had to compromise. It turns out there&#x27;s no LPDDR5-capable machine with SODIMM bars. One reason for that is the low number of pins that are present in SODIMM connectors. Imagine having a 2048-bit memory bus (like they are used on <a href="https://en.wikipedia.org/wiki/High_Bandwidth_Memory">HBM</a> modules) on a SODIMM interface; there&#x27;s simply nobody who specified such a standard for pluggable SODIMM modules. The LP in LPDDR5 stands for &quot;Low Power,&quot; which can&#x27;t deal with the signal integrity losses of SODIMM connectors. It needs a nice, clean PCB trace without some noisy physical mounting connector. The upside of this is that LPDDR consumes a lot less power than the normal SODIMM-mounted DDR RAM found in other notebooks. By the way, the LPDDR standard is not just DDR with some added specs; it&#x27;s a completely different specification from DDR and was developed independently.</p>
+<p>The laptop I went for in the end has 64GB LPDDR5. I don&#x27;t foresee me needing to upgrade RAM for a long time.</p>
+<h3 id="point-6---it-shall-be-chargeable-via-usbc-pd">Point 6 - It shall be chargeable via USBC-PD</h3>
+<p>Pretty self-explaining, I guess. When traveling (and even at home, if I think about it), I want to have one charger for everything. USBC-PD makes life easy. Probably one of the best technological improvements for me is the unification of charging infrastructure that USBC made possible.</p>
+<h3 id="point-7---i-want-a-touchscreen">Point 7 - I want a touchscreen</h3>
+<p>Yeah, I know, this point is a bit weird. But I love how I can lay on the sofa and scroll through a website with the laptop on my chest. It&#x27;s purely a personal opinion, but touchscreens are awesome. I learned to love them with my older Dell Latitude, which also had one. Once you have one, I am pretty sure you&#x27;ll find that one situation that makes a touchscreen worth it. It&#x27;s different for everybody, though.</p>
+<h3 id="point-8---fullhd--1080p-1200p--screen">Point 8 - FullHD (1080p&#x2F;1200p) screen</h3>
+<p>I can&#x27;t stand 4k screens on a tiny form factor such as 13.3&quot;. I see pixels only when I look very, very closely. The added strain on the GPU and battery just isn&#x27;t worth it to me. Also, fractional scaling is nice within most desktop environments under Wayland, but it&#x27;s not very nice in GRUB or other older textmode interfaces.</p>
+<h3 id="point-9---ansi-us--qwerty--keyboard-layout">Point 9 - ANSI-US (QWERTY) keyboard layout</h3>
+<p>I love ANSI-US. Easy access to brackets, special characters, and no wasted keys on local language features such as the German umlauts I use those incredibly rarely.</p>
+<h1 id="manufacturer">Manufacturer</h1>
+<h2 id="dell">Dell</h2>
+<p>I liked my Dell Latitude very much. I looked for a laptop from Dell, but they wouldn&#x27;t even offer a thin or light 13.3&quot; laptop with 32+GB RAM and an AMD CPU. All their XPS13 are Intel. Added to that, the new XPS13 has some sort of touch-buttons (instead of using the fn toggle + Fx keys), and I like physical buttons. Maybe they work well in practice, but I didn&#x27;t want to risk it.</p>
+<p>For reference, this was the laptop I looked at, which seemed like the best fit for me: https:&#x2F;&#x2F;www.dell.com&#x2F;de-de&#x2F;shop&#x2F;dell-notebooks&#x2F;xps-13-plus-laptop&#x2F;spd&#x2F;xps-13-9320-laptop&#x2F;cn93352cc</p>
+<h2 id="hp">HP</h2>
+<p>Next manufacturer I looked at was HP. I owned a HP Spectre x360 some time ago and liked it a lot too. They don&#x27;t exist with AMD CPUs, at least not at the time I looked. The HP Pro x360 435 looked like a potential match, however: https:&#x2F;&#x2F;www.hp.com&#x2F;de-de&#x2F;shop&#x2F;product.aspx?id=816D9EA&amp;opt=ABD&amp;sel=NTB</p>
+<p>The only problem was that HP simply doesn&#x27;t allow configuration of the keyboard. In Germany, you&#x27;re seemingly forced to buy a German layout. In the end, I decided against it and looked at the third manufacturer.</p>
+<h2 id="lenovo">Lenovo</h2>
+<p>Now, I try not to buy Chinese. I am wary about the <a href="https://www.bloomberg.com/features/2021-supermicro/">security</a> <a href="https://myce.wiki/news/lenovo-laptops-come-with-preinstalled-advertisement-injecting-adware-74290/">implications</a> of doing so. I don&#x27;t like their human rights track record (and yes, I think the US is better in this regard). I think the <a href="https://www.reuters.com/world/german-spy-chief-russia-is-storm-china-is-climate-change-2022-10-17/">chinese</a> <a href="https://www.aljazeera.com/news/2022/1/13/chinas-sea-claims-gravely-undermines-rule-of-law-us-study">political</a> <a href="https://www.bbc.com/news/world-asia-china-22278037">system</a> <a href="https://en.wikipedia.org/wiki/Nine-dash_line">is</a> <a href="https://www.washingtonpost.com/opinions/2019/06/27/chinas-efforts-undermine-democracy-are-expanding-worldwide/">a</a> <a href="https://networkcontagion.us/wp-content/uploads/A-Tik-Tok-ing-Timebomb_12.21.23.pdf">threat</a> to the free world.</p>
+<p>I even messaged the <a href="https://en.wikipedia.org/wiki/Federal_Office_for_Information_Security">BSI</a> via email and asked what their opinion is on Lenovo. They weren&#x27;t very helpful, though, and replied back with a template that stated that I could check their security advisories. I mean, yeah, but still, I had hoped for a more nuanced opinion. Oh well.</p>
+<p>Also, as far as I was able to research, all the big American companies have at least some supply chain in China (Even though that&#x27;s <a href="https://www.pcmag.com/news/dell-to-stop-using-chips-made-in-china-before-the-end-of-2024">changing</a>). You can&#x27;t really avoid it, unless you go back in time and use a device which can run <a href="https://www.coreboot.org">Coreboot</a>. Alternatively, you can also go for something like the <a href="https://www.raptorcs.com/">Talos II</a> - but that&#x27;s very far outside of my budget (and it&#x27;s no laptop :)). </p>
+<p>If you search for this discussion online, there&#x27;s a lot of people who aren&#x27;t worried, or are worried about things I am not worried about. There&#x27;s lots of argumentation going into the direction that people should just not use Windows and Chrome (I don&#x27;t use either) if they are so worried, and that smartphones are so much worse (mine isn&#x27;t, I run GrapheneOS). I feel like this discussion is misdirected; the real Lenovo backdoors (if there are any) are going to be in the embedded controller firmware onboard the laptop, or in the UEFI code. This is something I see discussed very rarely. The only &quot;comforting&quot; thought here is that I really doubt that ex-filtration of data via the internet would be easy to hide in properly firewalled cooperate networks. It would make the news pretty fast, if some corporation figured out weird traffic originating from their fleet of Thinkpads. Maybe someday I will try to reverse engineering a Lenovo firmware blob and try and and answer this question for myself. </p>
+<p>In the end, I decided that it&#x27;s worth at least checking what they are offering (especially since I was able to get Lenovo store access with ~20% discount). I am not complacent here - I still think that the laptop could be backdoor-ed in a way that&#x27;s hard to detect. I just chose to live with that thought, since I fail to see clandestine extraction methods that wouldn&#x27;t be noticed in various cooperate environments (perhaps even by me in my heavily segregated VLANs where I regularly check for unknown traffic).</p>
+<p>Anyhow, it turns out, they offer a machine that 100% fits what I am after: The Thinkpad Z13 Gen 2.</p>
+<p>I could configure it with 7840U, 64GB RAM, touchscreen, and ANSI-US layout (called &quot;Backlit, Black&#x2F;Arctic Grey with Fingerprint Reader - English (Euro) &quot;). It was also about 300 Euros cheaper than Dell and HP devices, while offering 64GB RAM. </p>
+<p>It took quite a while to arrive in Germany (around two weeks). Most of that time was UPS (they have <em>horrible</em> tracking; it&#x27;s really insanely bad), and it seemed that the laptop was in stock in my configuration.</p>
+<h1 id="the-laptop">The laptop</h1>
+<p>Here are the exact specs:</p>
+<p><code>
+H&#x2F;W path            Device          Class          Description
+==============================================================
+                                    system         21JVCTO1WW (LENOVO_MT_21JV_BU_Think_FM_ThinkPad Z13 Gen 2)
+&#x2F;0                                  bus            21JVCTO1WW
+&#x2F;0&#x2F;0                                memory         512KiB L1 cache
+&#x2F;0&#x2F;1                                memory         8MiB L2 cache
+&#x2F;0&#x2F;2                                memory         16MiB L3 cache
+&#x2F;0&#x2F;3                                processor      AMD Ryzen 7 PRO 7840U w&#x2F; Radeon 780M Graphics
+&#x2F;0&#x2F;5                                memory         64GiB System Memory
+&#x2F;0&#x2F;5&#x2F;0                              memory         16GiB Synchronous Unbuffered (Unregistered) 7500 MHz (0.1 ns)
+&#x2F;0&#x2F;5&#x2F;1                              memory         16GiB Synchronous Unbuffered (Unregistered) 7500 MHz (0.1 ns)
+&#x2F;0&#x2F;5&#x2F;2                              memory         16GiB Synchronous Unbuffered (Unregistered) 7500 MHz (0.1 ns)
+&#x2F;0&#x2F;5&#x2F;3                              memory         16GiB Synchronous Unbuffered (Unregistered) 7500 MHz (0.1 ns)
+&#x2F;0&#x2F;15                               memory         128KiB BIOS
+&#x2F;0&#x2F;100                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;0.2                          generic        Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;2.2                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;2.2&#x2F;0        wlp1s0          network        MT7922 802.11ax PCI Express Wireless Network Adapter
+&#x2F;0&#x2F;100&#x2F;2.4                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0        &#x2F;dev&#x2F;nvme0      storage        WD PC SN740 SDDQMQE-2T00-1201
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;0      hwmon2          disk           NVMe disk
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;2      &#x2F;dev&#x2F;ng0n1      disk           NVMe disk
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;1      &#x2F;dev&#x2F;nvme0n1    disk           2048GB NVMe disk
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;1&#x2F;1                    volume         511MiB Windows FAT volume
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;1&#x2F;2    &#x2F;dev&#x2F;nvme0n1p2  volume         488MiB EFI partition
+&#x2F;0&#x2F;100&#x2F;2.4&#x2F;0&#x2F;1&#x2F;3    &#x2F;dev&#x2F;nvme0n1p3  volume         1906GiB EFI partition
+&#x2F;0&#x2F;100&#x2F;3.1                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;4.1                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.1                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0        &#x2F;dev&#x2F;fb0        display        Phoenix1
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.1      card0           multimedia     Rembrandt Radeon High Definition Audio Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.1&#x2F;0    input23         input          HD-Audio Generic HDMI&#x2F;DP,pcm=3
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.1&#x2F;1    input24         input          HD-Audio Generic HDMI&#x2F;DP,pcm=7
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.1&#x2F;2    input25         input          HD-Audio Generic HDMI&#x2F;DP,pcm=8
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.1&#x2F;3    input26         input          HD-Audio Generic HDMI&#x2F;DP,pcm=9
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.2                      generic        Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.3                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.3&#x2F;0    usb1            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.3&#x2F;0&#x2F;3                  communication  Wireless_Device
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.3&#x2F;0&#x2F;5                  generic        Generic USB device
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.3&#x2F;1    usb2            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.4                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.4&#x2F;0    usb3            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.4&#x2F;0&#x2F;1  input28         multimedia     Integrated RGB Camera: Integrat
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.4&#x2F;1    usb4            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.5                      multimedia     ACP&#x2F;ACP3X&#x2F;ACP6x Audio Coprocessor
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.6      card1           multimedia     Family 17h&#x2F;19h HD Audio Controller
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.6&#x2F;0    input27         input          HDA Digital PCBeep
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.6&#x2F;1    input30         input          HD-Audio Generic Mic
+&#x2F;0&#x2F;100&#x2F;8.1&#x2F;0.6&#x2F;2    input31         input          HD-Audio Generic Headphone
+&#x2F;0&#x2F;100&#x2F;8.2                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.2&#x2F;0                        generic        Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.2&#x2F;0.1                      generic        Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3                          bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0                        generic        Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.3                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.3&#x2F;0    usb5            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.3&#x2F;1    usb6            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.4                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.4&#x2F;0    usb7            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.4&#x2F;1    usb8            bus            xHCI Host Controller
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.5                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;8.3&#x2F;0.6                      bus            Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;100&#x2F;14                           bus            FCH SMBus Controller
+&#x2F;0&#x2F;100&#x2F;14.3                         bridge         FCH LPC Bridge
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;0                       system         PnP device PNP0c02
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;1                       system         PnP device PNP0b00
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;2                       generic        PnP device LEN0071
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;3                       generic        PnP device LEN0316
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;4                       system         PnP device PNP0c02
+&#x2F;0&#x2F;100&#x2F;14.3&#x2F;5                       system         PnP device PNP0c01
+&#x2F;0&#x2F;101                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;102                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;103                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;104                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;105                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;106                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;107                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;108                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;109                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;10a                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;10b                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;10c                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;0&#x2F;10d                              bridge         Advanced Micro Devices, Inc. [AMD]
+&#x2F;1                                  power          5B10W51881
+&#x2F;2                  input0          input          AT Translated Set 2 keyboard
+&#x2F;3                  input15         input          Wacom HID 5385 Pen
+&#x2F;4                  input16         input          Wacom HID 5385 Finger
+&#x2F;5                  input18         input          PC Speaker
+&#x2F;6                  input19         input          ThinkPad Extra Buttons
+&#x2F;7                  input2          input          Power Button
+&#x2F;8                  input20         input          SNSL0028:00 2C2F:0028 Mouse
+&#x2F;9                  input21         input          SNSL0028:00 2C2F:0028 Touchpad
+&#x2F;a                  input3          input          Lid Switch
+&#x2F;b                  input4          input          TPPS&#x2F;2 Elan TrackPoint
+&#x2F;c                  input5          input          Sleep Button
+&#x2F;d                  input6          input          Video Bus
+</code></p>
+<p>(The output here comes from <code>lshw -short -sanitize</code> btw, since I was asked.) It&#x27;s an absolute beast in a 13.3-inch form factor.</p>
+<p>I read quite a few comments on this laptop before deciding to buy it, and many people weren&#x27;t sure about the keyboard. I can confidently say that I love it. It&#x27;s quiet, has very good travel (1.35mm on paper, but feels like much more). Very nice feedback, and it is full-sized (it stretches the complete width of the chassis). Also, no weird fn &lt;&gt; CTRL swapping is needed (sorry, old-school ThinkPad fans!). CTRL is where it&#x27;s supposed to be—in the leftmost pinkie position.</p>
+<p>The touchpad was a bit annoying at first (pinching and zooming sometimes weren&#x27;t working). Having checked libinputs bug tracker for something similar, I found <a href="https://gitlab.freedesktop.org/libinput/libinput/-/issues/905">an issue</a> from somebody who had the inverse problem. He found that kernel parameter <code>psmouse.synaptics_intertouch=0</code> solved his problem. I booted with that option, and yeah. It really does solve all my problems with the touchpad. It is insane that the secondary bus for Synaptics devices is still such a problem. </p>
+<p>If you have this laptop, try it yourself: run <code>libinput debug-events --verbose</code> without the above kernel parameter, and try pinch-zooming a bit. You&#x27;ll see a lot of times that libinput will detect only a <code>POINTER_MOTION</code> event even though you pinched, while this completely stops with the kernel parameter. I am not sure, but this seems like a bug in the device firmware, which would need to be fixed by Lenovo.</p>
+<p>So, how does suspend&#x2F;resume work now? Wasn&#x27;t that the main reason for even buying this? To make a long story short, it works absolutely flawlessly on Debian 12 (6.1.0-16-amd64 #1 SMP PREEMPT<em>DYNAMIC Debian 6.1.67-1 (2023-12-12) x86</em>64 GNU&#x2F;Linux). It instantly suspends and wakes up in about one second. Overnight power draw when suspended is ~4%, which is superb for me.</p>
+<p>I will keep you informed if any of this changes.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2023-12-26 16:02:20. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="rssmsg">Subscribe with RSS: <a href="https://lpcvoid.com/rss">https://lpcvoid.com/rss</a></div>
+    </div>
+
+</body>
+
+</html>
