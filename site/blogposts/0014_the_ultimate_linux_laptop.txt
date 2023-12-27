@@ -57,6 +57,10 @@ I love ANSI-US. Easy access to brackets, special characters, and no wasted keys 
 
 # Manufacturer
 
+## Frame.Work
+
+I have read many positive things about the Frame.Work laptop, and when I heard that they would offer an AMD version, I was really interested. It is *almost* an ideal candidate. It's running Coreboot, has an AMD CPU, is repairable, extendable and upgradable (specifically, the "expansion card" system is really nice!). But they don't offer a touchscreen. I thought very long about accepting that drawback and going the Frame.work route - but I couldn't get myself to ignore that one drawback. If they ever offer a touchscreen, I may reconsider.
+
 ## Dell
 
 I liked my Dell Latitude very much. I looked for a laptop from Dell, but they wouldn't even offer a thin or light 13.3" laptop with 32+GB RAM and an AMD CPU. All their XPS13 are Intel. Added to that, the new XPS13 has some sort of touch-buttons (instead of using the fn toggle + Fx keys), and I like physical buttons. Maybe they work well in practice, but I didn't want to risk it.
