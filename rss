@@ -5,8 +5,61 @@
   <title>lpcvoid's homepage</title>
   <link>https://Lpcvoid.com/blog/</link>
   <description>My blog about computers</description>
-  <lastBuildDate>2023-12-26</lastBuildDate>
+  <lastBuildDate>2024-01-29</lastBuildDate>
   <language>en-us</language>
+  
+  <item>
+    <title>Improving my DynDNS setup</title>
+    <link>https://lpcvoid.com/blog/0015_improving_dyndns</link>
+    <description><![CDATA[<p>I run quite a few services for friends and family. At some point, I will write a blog post about this, but today I want to write about a problem I have been having and how I solved it.</p>
+<p>Within the last few months, I had spontaneous hiccups within my infrastructure with regards to DNS lookups. Every now and then, at different points in time, DNS lookups for certain subdomains where different services are hosted on, timed out or only resolved with considerable delay.</p>
+<p>I tried to reproduce this, which didn&#x27;t work well, as the problem only reared its head now and then. I setup a cronjob to be run every hour, and logged the output. That worked, and led to this:</p>
+<pre><code>dig a nxsubdomain.lpcvoid.com</code></pre>
+<pre><code>; &lt;&lt;&gt;&gt; DiG 9.18.19-1~deb12u1-Debian &lt;&lt;&gt;&gt; a nxsubdomain.lpcvoid.com
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: SERVFAIL, id: 54406
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1</code></pre>
+<pre><code>;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; EDE: 22 (No Reachable Authority): (at delegation duckdns.org.)
+; EDE: 23 (Network Error): (3.97.58.28:53 timed out for lpcvoid.duckdns.org A)
+;; QUESTION SECTION:
+;nxsubdomain.lpcvoid.com.		IN	A</code></pre>
+<pre><code>;; Query time: 4160 msec
+;; SERVER: 192.168.1.1#53(192.168.1.1) (UDP)
+;; WHEN: Sat Jan 27 22:01:27 CET 2024
+;; MSG SIZE  rcvd: 132</code></pre>
+<p>Turns out, DuckDNS, the dyndns provider I use, was the root of these timeouts. Every now and then, it would time out randomly. Now, this isn&#x27;t any attack on them, DuckDNS is a one-player show offering a service for free to everybody. I am incredibly grateful for their continued work, and these sort of problems are normal once you become as widely used as they are.</p>
+<p>But I cannot live with this, since I use domains everywhere, even within my LAN. I could of course configure my DNS server to cache more aggressively, or use internal LAN addresses when the request comes from within the LAN (compared to my WAN IP when requests arrive via the WAN). But this would also entail maintaining a <a href="https://en.wikipedia.org/wiki/Split-horizon_DNS">&quot;split horizon&quot;</a> DNS. I would like to avoid that, and use my WAN IP internally within my LAN. This is called <a href="https://docs.netgate.com/pfsense/en/latest/nat/reflection.html">reflection</a> in the NAT world. I really feel like I am approaching the point in time where an IPv6 setup would reduce my LAN complexity by a considerable amount. Some day...</p>
+<p>In any case, I needed an alternative. There&#x27;s an elegant solution to this problem, which is technically superior to a dedicated dyndns provider. </p>
+<p>I already use Cloudflare for my domains DNS setup. Like all other DNS management platforms, Cloudflare allows you to configure various DNS zones which point somewhere. In the past, I had a DuckDNS subdomain (lpcvoid.duckdns.org) point to my WAN IP, and CNAME&#x27;ed a wildcard zone rule to point to the DuckDNS domain for the actual address resolution. This worked, but is inefficient: You need to first lookup the domain you&#x27;re interested in (let&#x27;s say blabla.lpcvoid.com). This info is returned by Cloudflare, and is pretty fast. Then, your browser will lookup lpcvoid.duckdns.org (which blabla.lpcvoid.com points to via the CNAME entry, remember) and that will in turn result in my WAN IP. So you have two lookups in total, and one of those (the DuckDNS one in my case) is potentially slow.</p>
+<p>Ideally, Cloudflare would always know my WAN IP, and update DNS A records whenever my WAN IP changes. This would completely remove the DynDNS provider from the equation, and result in very fast, single lookups which Cloudflare can respond to instantly. </p>
+<p>Thankfully, OpenWRT, which runs on my router, maintains a script which can do exactly this automatically as part of the <a href="https://openwrt.org/packages/pkgdata/ddns-scripts-cloudflare">ddns-scripts-cloudflare</a> package. For this to work, you need a Cloudflare API key (which you can generate <a href="https://dash.cloudflare.com/profile/api-tokens">here</a>). Generate a token which can only change DNS zones - you should in general be quite restrictive with Cloudflare API tokens, since they are a pretty high value target for attackers. Afterwards, use the token and the username &quot;Bearer&quot; (yes, capital &quot;B&quot;), along with the record you wish to update on WAN IP change. So if your subdomain is foobar.example.com, and the record is thus called &quot;foobar&quot;, you configure your &quot;domain&quot; in the script as &quot;foobar@example.com&quot; in order for Cloudflare to resolve it properly.</p>
+<p>After doing this, you should have an A record which points to your WAN IP. Now, if you&#x27;re lazy like me, and have dozens of subdomains, you obviously want to have a wildcard record. The trick is to have your wildcard CNAME record (*) point to the A record you just configured. This lookup, by the way, will be handled internally via Cloudflare&#x27;s resolvers, and not result in two DNS queries.</p>
+<p>In the end, you should have something like this:</p>
+<pre><code>dig a nxsubdomain.lpcvoid.com</code></pre>
+<pre><code>; &lt;&lt;&gt;&gt; DiG 9.18.19-1~deb12u1-Debian &lt;&lt;&gt;&gt; a nxsubdomain.lpcvoid.com
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 49990
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1</code></pre>
+<pre><code>;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;nxsubdomain.lpcvoid.com.	IN	A</code></pre>
+<pre><code>;; ANSWER SECTION:
+nxsubdomain.lpcvoid.com. 600	IN	CNAME	homeserver.lpcvoid.com.
+homeserver.lpcvoid.com.	600	IN	A	79.235.213.105</code></pre>
+<pre><code>;; Query time: 20 msec
+;; SERVER: 192.168.1.1#53(192.168.1.1) (UDP)
+;; WHEN: Mon Jan 29 14:55:48 CET 2024
+;; MSG SIZE  rcvd: 93</code></pre>
+<p>Beautiful, problem solved. DNS lookups are now snappy.</p>
+<p>In my next post I guess I will write about my complete setup.</p>
+]]></description>
+    <pubDate>2024-01-29</pubDate>
+  </item>
   
   <item>
     <title>The ultimate Linux laptop</title>
