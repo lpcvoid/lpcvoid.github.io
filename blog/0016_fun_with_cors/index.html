@@ -1,0 +1,81 @@
+<!-- I do not like web development. Please do not judge me based on this hacked together mess of a website, haha.-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>lpcvoid's homepage - CORS on Firefox</title>
+    <link href="https://lpcvoid.com/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="center">
+
+        <div class="logo">
+<pre>
+  __       ______   ______   __  __   ______   ______   ______     
+ /\ \     /\  __ \ /\  __ \ /\ \/\ \ /\  __ \ /\__  _\ /\  __ \    
+ \ \ \    \ \ \_\ \\ \ \/\_\\ \ \ \ \\ \ \/\ \\/_/\ \/ \ \ \/\ \   
+  \ \ \  __\ \  __/ \ \ \/_/_\ \ \ \ \\ \ \ \ \  \ \ \  \ \ \ \ \  
+   \ \ \_\ \\ \ \/   \ \ \_\ \\ \ \_/ \\ \ \_\ \  \_\ \__\ \ \_\ \ 
+    \ \____/ \ \_\    \ \____/ \ `\___/ \ \_____\ /\_____\\ \____/ 
+     \/___/   \/_/     \/___/   `\/__/   \/_____/ \/_____/ \/___/  
+</pre>
+            m<span style="display:none">zero</span>ail<span style="display:none">spm</span>@lpcvoid.com
+                        <!-- are there smart address farmers around that can parse this obfusication?-->
+                        <!-- Update end of 2023: I have never gotten spam on this address - seems to work-->
+	<div class="center"><div class="ukraine-first">Please support Ukraine against Russian aggression.</div><div class="ukraine-last">If you can, please <a href="https://news.un.org/en/focus/ukraine/donate">donate</a>.</div></div>
+        </div>
+        
+        <div class="menu">
+            <ul class="ulheader">
+              <li class="float-left"><a  href="https://lpcvoid.com/">Home</a></li>
+              <li class="float-left" ><a href="https://lpcvoid.com/blog/">Blog</a></li>
+              <li class="float-right"><a href="https://threema.id/FJF84N2Y">Threema</a></li>
+              <li class="float-right"><a href="https://news.ycombinator.com/user?id=lpcvoid">HN</a></li>
+              <li class="float-right"><a href="https://github.com/lpcvoid">Github</a></li>
+            </ul>
+        </div>
+
+        
+        
+
+        
+
+        
+        <div class="content">
+            
+            <div class="blogentryheader">
+              <h3 class="float-left">CORS on Firefox</h3>
+              <h4 class="float-right">Published on: 2024-04-14</h4>
+            </div>
+            <div>
+                <p><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a> is one of those things that I think are needed, important, and annoying at the same time. I am happy it exists, because it protects against a certain class of attacks where a website can &quot;pretend&quot; to be you and request third-party resources in your name. But it&#x27;s also a bit annoying, specially when things that <em>should</em> work, don&#x27;t. This blog post is short, but if it helps a single person on planet earth, then it has done its deed.</p>
+<p>Imagine a web application which consists of many different endpoints (as most do). You secured one of them with <a href="https://lpcvoid.com/blog/0010_private_ca_client_certificates/index.html">TLS client auth</a> - also called mTLS.</p>
+<p>Now, another web application on a different subdomain, requests (via GET) this resource on the client (browser) side. You anticipate this, and enable CORS headers on the protected endpoint.</p>
+<pre><code>add_header &#x27;Access-Control-Allow-Origin&#x27; &#x27;https:&#x2F;&#x2F;$URL&#x27; always;
+add_header &#x27;Access-Control-Allow-Credentials&#x27; &#x27;true&#x27;;
+add_header &#x27;Access-Control-Allow-Methods&#x27; &#x27;GET, POST, OPTIONS&#x27;;</code></pre>
+<p>Sweet, that should do it, right? Trembling with anticipation, you refresh the page of the web application which requests this URL, only for Firefox to greet you with:</p>
+<pre><code>HTTP&#x2F;1.1 403 Forbidden
+Server: nginx
+Date: Sun, 14 Apr 2024 18:02:33 GMT
+Content-Type: text&#x2F;html; charset=utf-8
+Content-Length: 146
+Connection: keep-alive</code></pre>
+<p>No CORS headers, and a 403. What&#x27;s up with that? Turns out (after a while of debugging, as usual) that the CORS &quot;pre-flight&quot; check failed. This is an OPTIONS request toward the URL in question, in which the browser checks for the headers above. The problem is that this request doesn&#x27;t support mTLS authentication! As an added bonus, there&#x27;s a ten year old <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1019603">Firefox bug</a> about this behavior. To be fair, this seems to be an oversight in the CORS spec itself, and not in Firefox.</p>
+<p>Anyhow, you can fix all of this by setting an about:config property <code>network.cors_preflight.allow_client_cert</code> to <code>true</code>. </p>
+<p>After this, your CORS requests will use mTLS authenticated pre-flight requests to obtain the Access-Control-Allow-* headers, and Bob&#x27;s your uncle.</p>
+
+                
+            </div>
+            
+        </div>
+        
+
+        <div class="generationmsg">Site generated on 2024-04-14 18:17:27. <a href="https://github.com/lpcvoid/lpcvoid.github.io">Changelog on Github.</a></div>
+        <div class="rssmsg">Subscribe with RSS: <a href="https://lpcvoid.com/rss">https://lpcvoid.com/rss</a></div>
+    </div>
+
+</body>
+
+</html>
