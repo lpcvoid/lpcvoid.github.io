@@ -5,8 +5,31 @@
   <title>lpcvoid's homepage</title>
   <link>https://Lpcvoid.com/blog/</link>
   <description>My blog about computers</description>
-  <lastBuildDate>2024-04-14</lastBuildDate>
+  <lastBuildDate>2024-05-03</lastBuildDate>
   <language>en-us</language>
+  
+  <item>
+    <title>Tuning power consumption and efficiency on Linux with AMD CPU/GPU</title>
+    <link>https://lpcvoid.com/blog/0017_linux_amd_power_tuning</link>
+    <description><![CDATA[<p>I recently got myself a Thinkpad Z13 Gen2 with an AMD 7840u CPU. It also comes with an integrated GPU (Radeon 780) which packs quite a punch for an iGPU. All in all, I am very happy with this system. I use it daily and have no complaints about the performance at all (there&#x27;s still the post I want to write about the eGPU setup I am using... any day now!).</p>
+<p>What isn&#x27;t so great, though, is the default power efficiency when using a standard Debian install with it. Now you might ask yourself why I went with Debian on new hardware. I just like the stability, and I argue that you can still run fairly recent kernel versions using the Debian backport repo. You can compile relevant software yourself, and you can install binary firmware blobs manually. If you don&#x27;t use Debian Bookworm (12), then this post may not even be relevant for you. In any case, in this post, I want to outline what I did to minimize wattage, keep the laptop cool, and maximize battery life. Keep in mind - this post assumes that you&#x27;re running recent (Zen3+) AMD hardware.</p>
+<h2 id="cpu-scaling-driver">CPU scaling driver</h2>
+<p>First thing you should check which scaling driver you are using.</p>
+<pre><code>cat &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;cpu*&#x2F;cpufreq&#x2F;scaling_driver</code></pre>
+<p>This will probably give you <code>acpi_cpufreq</code>. If that&#x27;s the case, then you should consider switching to <code>amd_pstate_epp</code>. Actually, there&#x27;s also <code>amd_pstate</code> (no <code>_epp</code>suffix) - the difference in my testing is large, and <code>amd_pstate_epp</code> is superior. The <a href="https://docs.kernel.org/admin-guide/pm/amd-pstate.html">kernel documentation</a> refers to this difference with different names (active, passive and guided). See the linked page, it explains the differences very nicely.</p>
+<p>Anyhow, you&#x27;ll want to configure the kernel to use the active mode. For this, I added a kernel parameter: <code>initcall_blacklist=acpi_cpufreq_init amd_pstate=active</code>. The blacklisting is needed, because otherwise the <code>acpi_cpufreq</code> driver may be started beforehand and stop the <code>amd_pstate</code> driver from taking over. The second paramter sets the mode to active. Keep in mind, to use the active mode you&#x27;ll need a kernel newer than 6.5 (install from Backports).</p>
+<p>After booting, the above sysfs file should return <code>amd-pstate-epp</code>. At this point, you should already notice a massive difference in terms of thermals and battery life, but we aren&#x27;t done yet.</p>
+<h2 id="power-profiles-daemon">power-profiles-daemon</h2>
+<p>If it&#x27;s not installed yet, you should <em>at least</em> install <code>power-profiles-daemon</code>. Essentially, it allows an easy way to switch between what&#x27;s called &quot;platform profiles&quot;. These profiles are defined within the ACPI spec. They <em>massively</em> influence Thinkpads computing performance and efficiency, since Lenovo uses this ACPI functionality to determine minimum&#x2F;maximum frequency as well as frequency boost duration.</p>
+<p>You can, of course, set this yourself - valid options are &quot;low-power&quot;, &quot;balanced&quot; and &quot;performance&quot;, and you can write them directly into <code>&#x2F;sys&#x2F;firmware&#x2F;acpi&#x2F;platform_profile</code>. But power-profiles-daemon also manages the <a href="https://www.kernel.org/doc/Documentation/cpu-freq/governors.txt">CPU frequency governor</a> for you.</p>
+<p>Currently, <code>power-profiles-daemon</code> in Debian Bookworm is at <a href="https://tracker.debian.org/pkg/power-profiles-daemon">version 0.12</a>, which even for Debian is pretty ancient. You should update to the newest version - read the <a href="https://gitlab.freedesktop.org/upower/power-profiles-daemon/-/compare/0.12...0.21?from_project_id=6840&straight=false">changelog</a> if you&#x27;re not convinced :).<br /></p>
+<h2 id="upgrade-binary-firmware-manually">Upgrade binary firmware manually</h2>
+<p>In order to fix <a href="https://gitlab.freedesktop.org/mesa/mesa/-/issues/10198">bugs</a> in newer iGPU firmware, you should update the firmware blobs. To do this, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/amdgpu">download</a> the Linux firmware blobs, copy&#x2F;overwrite <code>&#x2F;lib&#x2F;firmware&#x2F;amdgpu</code> and re-create your initramfs with <code>update-initramfs -u -k all</code>. </p>
+<p>After these points, your laptop should be much cooler, with longer battery life and better hardware decoding.</p>
+<p>By the way - if you&#x27;re using Waybar, I added an element to my Waybar which allows me to easily toggle the <code>platform_profile</code>. Maybe it&#x27;s useful to you, here&#x27;s a <a href="https://github.com/lpcvoid/configs/blob/master/waybar/config#L81">Github link</a>.</p>
+]]></description>
+    <pubDate>2024-05-03</pubDate>
+  </item>
   
   <item>
     <title>CORS on Firefox</title>

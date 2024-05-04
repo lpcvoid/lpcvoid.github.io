@@ -1,0 +1,37 @@
+TITLE: Tuning power consumption and efficiency on Linux with AMD CPU/GPU
+DATE: 2024-05-03
+TAGS: linux energy power amd tuning
+-------------------------
+
+I recently got myself a Thinkpad Z13 Gen2 with an AMD 7840u CPU. It also comes with an integrated GPU (Radeon 780) which packs quite a punch for an iGPU. All in all, I am very happy with this system. I use it daily and have no complaints about the performance at all (there's still the post I want to write about the eGPU setup I am using... any day now!).
+
+What isn't so great, though, is the default power efficiency when using a standard Debian install with it. Now you might ask yourself why I went with Debian on new hardware. I just like the stability, and I argue that you can still run fairly recent kernel versions using the Debian backport repo. You can compile relevant software yourself, and you can install binary firmware blobs manually. If you don't use Debian Bookworm (12), then this post may not even be relevant for you. In any case, in this post, I want to outline what I did to minimize wattage, keep the laptop cool, and maximize battery life. Keep in mind - this post assumes that you're running recent (Zen3+) AMD hardware.
+
+## CPU scaling driver
+
+First thing you should check which scaling driver you are using.
+
+	cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_driver
+
+This will probably give you `acpi_cpufreq`. If that's the case, then you should consider switching to `amd_pstate_epp`. Actually, there's also `amd_pstate` (no `_epp`suffix) - the difference in my testing is large, and `amd_pstate_epp` is superior. The [kernel documentation](https://docs.kernel.org/admin-guide/pm/amd-pstate.html) refers to this difference with different names (active, passive and guided). See the linked page, it explains the differences very nicely.
+
+Anyhow, you'll want to configure the kernel to use the active mode. For this, I added a kernel parameter: `initcall_blacklist=acpi_cpufreq_init amd_pstate=active`. The blacklisting is needed, because otherwise the `acpi_cpufreq` driver may be started beforehand and stop the `amd_pstate` driver from taking over. The second paramter sets the mode to active. Keep in mind, to use the active mode you'll need a kernel newer than 6.5 (install from Backports).
+
+After booting, the above sysfs file should return `amd-pstate-epp`. At this point, you should already notice a massive difference in terms of thermals and battery life, but we aren't done yet.
+
+## power-profiles-daemon
+
+If it's not installed yet, you should *at least* install `power-profiles-daemon`. Essentially, it allows an easy way to switch between what's called "platform profiles". These profiles are defined within the ACPI spec. They *massively* influence Thinkpads computing performance and efficiency, since Lenovo uses this ACPI functionality to determine minimum/maximum frequency as well as frequency boost duration.
+
+You can, of course, set this yourself - valid options are "low-power", "balanced" and "performance", and you can write them directly into `/sys/firmware/acpi/platform_profile`. But power-profiles-daemon also manages the [CPU frequency governor](https://www.kernel.org/doc/Documentation/cpu-freq/governors.txt) for you.
+
+Currently, `power-profiles-daemon` in Debian Bookworm is at [version 0.12](https://tracker.debian.org/pkg/power-profiles-daemon), which even for Debian is pretty ancient. You should update to the newest version - read the [changelog](https://gitlab.freedesktop.org/upower/power-profiles-daemon/-/compare/0.12...0.21?from_project_id=6840&straight=false) if you're not convinced :).  
+
+## Upgrade binary firmware manually
+
+In order to fix [bugs](https://gitlab.freedesktop.org/mesa/mesa/-/issues/10198) in newer iGPU firmware, you should update the firmware blobs. To do this, [download](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/amdgpu) the Linux firmware blobs, copy/overwrite `/lib/firmware/amdgpu` and re-create your initramfs with `update-initramfs -u -k all`. 
+
+After these points, your laptop should be much cooler, with longer battery life and better hardware decoding.
+
+By the way - if you're using Waybar, I added an element to my Waybar which allows me to easily toggle the `platform_profile`. Maybe it's useful to you, here's a [Github link](https://github.com/lpcvoid/configs/blob/master/waybar/config#L81).
+
