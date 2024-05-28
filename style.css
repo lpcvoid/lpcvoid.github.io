@@ -98,14 +98,14 @@ ul {
 
 li a {
     display: block;
-    color: #BBB;
+    color: #EEE;
     text-align: center;
     padding: 10px 20px;
     text-decoration: none;
 }
 
 li a:hover {
-  background-color: #BBB;
+  background-color: #EEE;
   color: black;
 }
 
@@ -125,7 +125,7 @@ hr {
     border: none;
     height: 1px;
 
-    background-color: #BBB;
+    background-color: #EEE;
 }
 
 code {
@@ -150,7 +150,7 @@ td {
 }
 
 body {
-  background-color:#BBB;
+  background-color:#EEE;
 }
 
 img {
