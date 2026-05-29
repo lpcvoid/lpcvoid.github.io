@@ -15,7 +15,7 @@ I hate everything about generative AI. I argue it's actively harmfull for humani
 
 Generative AI is trained using human-created material, [which is stolen](https://www.tomshardware.com/tech-industry/artificial-intelligence/meta-staff-torrented-nearly-82tb-of-pirated-books-for-ai-training-court-records-reveal-copyright-violations) in vast quantities off the internet. Models are trained on this data, and then access to this trained model is sold in the form of a subscription. This is peak capitalism: The rich steal from the public, and then sell (temporary, time limited) access to the stolen material. There's no altruistic spin in this. I don't believe the lies about how AI is supposed to better humanity a single second. If all of this was done to better humanity, AI development would be done in public, data would be legally obtained, models would be released for free, access wouldn't be gatekept behind ever increasing subscription costs. 
 
-In German, there's a word that describes what's being done here: A "Hehler". Somebody who knowingly buys stolen goods and resells them to others. Only that in the GenAI world, goods are stolen, and the big AI companies don't even pay anybody for it.
+AI companies are fences. Somebody who knowingly buys stolen goods and resells them to others. Only that in the GenAI world, goods are stolen, and the big AI companies don't even pay anybody for it.
 
 AI is like a slow acting poison which spreads and contaminates every industry (currently under huge capital expenditure), until big tech can rent-seek in form of token expenditure while advancing sloppification of everything it touches. It's going to be very bad in a few years when the inevitable enshitification of AI makes a bad situation even worse.
 
