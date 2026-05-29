@@ -77,7 +77,9 @@ Some people will read this and say that the ongoing development of coding agents
 
 And by the end of the day, even if you think all of this is bullshit and that GenAI makes everything better in programming: why should anybody employ you, if you have no redeeming skills left due to brain atrophy, when the employer could just subscribe to an LLM provider to do your work? I simply don't get programmers that use LLMs by choice.
 
-People online in AI-hyped communities such as hacker news kept saying that everybody not using AI will be left behind. I disagree, I think you'll be left behind if you *do* use and rely on AI.
+People online in AI-hyped communities kept saying that everybody not using AI will be left behind. I disagree, I think you'll be left behind if you *do* use and rely on AI.
+
+Oh, and how can people look past the fact that LLMs doing things isn't deterministic? You can prompt them to do something that worked 10 times, and have absolutely no guarantee that the 11. time will yield satisfying results. They are a glorified slot machine, not a dependable piece of software.
 
 ## Last, but not least: Slop communication
 
